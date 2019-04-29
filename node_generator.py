@@ -27,16 +27,16 @@ class NodeGenerator():
         self.old_storage_cur.execute("SELECT contractor FROM trust_lines;")
         rows = self.old_storage_cur.fetchall()
         for row in rows:
-            #contractor = str(row[0])
-            contractor = str(binascii.hexlify(row[0]))
-            #contractor = binascii.hexlify(row[0])
-            #contractor = bytes(contractor)
-            #contractor = str(binascii.unhexlify(contractor))
-            #print("contractor: "+contractor)
+            #contractor_id = str(row[0])
+            contractor_id = str(binascii.hexlify(row[0]))
+            #contractor_id = binascii.hexlify(row[0])
+            #contractor_id = bytes(contractor_id)
+            #contractor_id = str(binascii.unhexlify(contractor_id))
+            #print("contractor_id: "+contractor_id)
 
-            contr = self.ctx.contractors.get(contractor) or context.Contractor()
-            self.ctx.contractors[contractor] = contr
-            contr.nodes[self.node_name] = self
+            contractor = self.ctx.contractors.get(contractor_id) or context.Contractor()
+            self.ctx.contractors[contractor_id] = contractor
+            contractor.nodes[self.node_name] = self
 
     def generate_conf_json(self):
         data = dict()

@@ -1,7 +1,6 @@
 import os, sys
 import getopt
 import shutil
-import itertools
 import context
 
 from settings import migration_conf
@@ -50,24 +49,12 @@ class Main(context.Context):
             self.nodes[node_migrator.new_node_address] = node_migrator
             new_node_address = self.increment_node_address(new_node_address)
 
-        self.generate_channels()
-
-        for channel in self.channels.values():
+        channels = NodeChannel.list(self.contractors)
+        for channel in channels.values():
             channel.generate()
 
         for node_migrator in self.nodes.values():
             node_migrator.migrate()
-
-    def generate_channels(self):
-        for name, contractor in self.contractors.items():
-            nodes = list(contractor.nodes.values())
-            node_pairs = list(itertools.combinations(range(0, len(nodes)), r=2))
-            for pair in node_pairs:
-                node1 = nodes[pair[0]]
-                node2 = nodes[pair[1]]
-                node_key_pair = [node1.node_name, node2.node_name]
-                node_key_pair.sort()
-                self.channels[tuple(node_key_pair)] = NodeChannel(self, node1, node2)
 
     @staticmethod
     def increment_node_address(node_address):

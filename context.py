@@ -12,4 +12,3 @@ class Context:
         self.verbose = False
         self.nodes = dict()
         self.contractors = dict()
-        self.channels = dict()

@@ -1,9 +1,9 @@
 import pysodium
+import itertools
 
 
 class NodeChannel:
-    def __init__(self, ctx, node1, node2):
-        self.ctx = ctx
+    def __init__(self, node1, node2):
         self.node1 = node1
         self.node2 = node2
 
@@ -26,3 +26,17 @@ class NodeChannel:
             id_on_contractor_side2,
             self.node1.new_node_address
         )
+
+    @staticmethod
+    def list(contractors):
+        channels = dict()
+        for name, contractor in contractors.items():
+            nodes = list(contractor.nodes.values())
+            node_pairs = list(itertools.combinations(range(0, len(nodes)), r=2))
+            for pair in node_pairs:
+                node1 = nodes[pair[0]]
+                node2 = nodes[pair[1]]
+                node_key_pair = [node1.node_name, node2.node_name]
+                node_key_pair.sort()
+                channels[tuple(node_key_pair)] = NodeChannel(node1, node2)
+        return channels
