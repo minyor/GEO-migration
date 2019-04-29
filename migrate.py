@@ -1,19 +1,17 @@
 import os, sys
 import getopt
+import shutil
+import itertools
+import context
 
 from settings import migration_conf
 from node_migrator import NodeMigrator
+from node_channel import NodeChannel
 
 
-class Context:
-    address = None
-    observers = "127.0.0.1:4000,127.0.0.1:4001,127.0.0.1:4002"
-    verbose = False
-    nodes = dict()
-
-
-class Main(Context):
+class Main(context.Context):
     def __init__(self):
+        super().__init__()
         try:
             opts, args = getopt.getopt(sys.argv[1:], "ha:o:v", ["help"])
         except getopt.GetoptError as err:
@@ -33,13 +31,13 @@ class Main(Context):
             else:
                 assert False, "unhandled option"
         self.observers = self.observers.split(',')
-        self.migrate()
 
     def migrate(self):
         old_infrastructure_path = migration_conf.get("old_infrastructure_path")
         new_infrastructure_path = migration_conf.get("new_infrastructure_path")
+        shutil.rmtree(new_infrastructure_path, ignore_errors=True)
         nodes = os.listdir(old_infrastructure_path)
-        new_node_address = self.address;
+        new_node_address = self.address
         for path in nodes:
             old_node_path = os.path.join(old_infrastructure_path, path)
             new_node_path = os.path.join(new_infrastructure_path, path)
@@ -52,8 +50,24 @@ class Main(Context):
             self.nodes[node_migrator.new_node_address] = node_migrator
             new_node_address = self.increment_node_address(new_node_address)
 
-        for node_address, node_migrator in self.nodes.items():
+        self.generate_channels()
+
+        for channel in self.channels.values():
+            channel.generate()
+
+        for node_migrator in self.nodes.values():
             node_migrator.migrate()
+
+    def generate_channels(self):
+        for name, contractor in self.contractors.items():
+            nodes = list(contractor.nodes.values())
+            node_pairs = list(itertools.combinations(range(0, len(nodes)), r=2))
+            for pair in node_pairs:
+                node1 = nodes[pair[0]]
+                node2 = nodes[pair[1]]
+                node_key_pair = [node1.node_name, node2.node_name]
+                node_key_pair.sort()
+                self.channels[tuple(node_key_pair)] = NodeChannel(self, node1, node2)
 
     @staticmethod
     def increment_node_address(node_address):
@@ -72,4 +86,4 @@ class Main(Context):
 
 
 if __name__ == "__main__":
-    Main()
+    Main().migrate()
