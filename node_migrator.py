@@ -52,7 +52,7 @@ class NodeMigrator(NodeGenerator):
             if trust_line.contractor_id != contractor_id:
                 continue
             print(
-                "\t\tGenerating trust line for node: " + self.node_name +
+                "\tGenerating trust line for node: " + self.node_name +
                 " id: " + str(local_id) +
                 " eq: " + str(trust_line.equivalent) +
                 " gw: " + str(trust_line.is_contractor_gateway)
@@ -61,6 +61,23 @@ class NodeMigrator(NodeGenerator):
                 "insert into trust_lines ('state', 'contractor_id', 'equivalent', 'is_contractor_gateway') "
                 "values ('2', ?, ?, ?);",
                 (local_id, trust_line.equivalent, trust_line.is_contractor_gateway)
+            )
+            trust_line.id = self.new_storage_cur.lastrowid
+            self.new_storage_cur.execute(
+                "insert into audit ("
+                    "'number', 'trust_line_id', 'our_key_hash', "
+                    "'our_signature', 'contractor_key_hash', 'contractor_signature', "
+                    "'own_keys_set_hash', 'contractor_keys_set_hash', 'balance', "
+                    "'outgoing_amount', 'incoming_amount'"
+                ") "
+                "values ("
+                "'1', ?, X'00', X'00', X'00', X'00', X'00', X'00', ?, ?, ?);",
+                (
+                    trust_line.id,
+                    sqlite3.Binary(trust_line.balance),
+                    sqlite3.Binary(trust_line.outgoing_amount),
+                    sqlite3.Binary(trust_line.incoming_amount)
+                )
             )
 
     def migrate(self):

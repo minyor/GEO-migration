@@ -48,25 +48,17 @@ class Main(context.Context):
                 continue
             node_migrator = NodeMigrator(self, old_node_path, new_node_path, new_node_address)
             node_migrator.generate()
-            self.nodes[node_migrator.new_node_address] = node_migrator
+            self.nodes[node_migrator.node_name] = node_migrator
             new_node_address = self.increment_node_address(new_node_address)
 
         print()
-        channels = NodeChannel.list(self.contractors)
+        channels = NodeChannel.construct_channels(self.nodes)
 
         print()
-        for channel in channels[0].values():
+        for channel in channels.values():
             channel.generate_channels()
-
-        for contractor in self.contractors.values():
-            print()
-            print("For contractor: " + contractor.contractor_id)
-            for channel in channels[1].values():
-                if channel.contractor.contractor_id != contractor.contractor_id:
-                    continue
-                contractor_tuple = NodeChannel.construct_contractor_tuple(
-                    channel.node1.node_name, channel.node2.node_name)
-                channel.generate_trust_lines(channels[0][contractor_tuple])
+        for channel in channels.values():
+            channel.generate_trust_lines()
 
         print()
         for node_migrator in self.nodes.values():

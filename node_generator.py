@@ -7,6 +7,7 @@ import context
 
 class TrustLine:
     def __init__(self):
+        self.id = None
         self.contractor_id = None
         self.contractor = None
         self.incoming_amount = None
@@ -31,36 +32,31 @@ class NodeGenerator():
         self.new_storage_con = sqlite3.connect(os.path.join(self.new_node_path, "io", "storageDB"))
         self.new_storage_cur = self.new_storage_con.cursor()
 
+    @staticmethod
+    def read_uuid(blob):
+        uuid = str(binascii.hexlify(blob))
+        return \
+            uuid[2:10] + '-' + \
+            uuid[10:14] + '-' + \
+            uuid[14:18] + '-' + \
+            uuid[18:22] + '-' + \
+            uuid[22:34]
+
     def generate(self):
         print("Generating node: " + self.node_name)
         self.generate_conf_json()
         self.generate_tables()
+        self.retrieve_trust_lines()
 
-        # X'1852CA72CBA64A47A4E382B663A641B1',
-        # X'0000000000000000000000000000000000000000000000000000000000004E20',
-        # X'0000000000000000000000000000000000000000000000000000000000002710',
-        # X'000000000000000000000000000000000000000000000000000000000000002710',
-        # '0', '1'
+    def retrieve_trust_lines(self):
         self.old_storage_cur.execute(
             "SELECT contractor, incoming_amount, outgoing_amount, balance, is_contractor_gateway, equivalent "
             "FROM trust_lines;")
         rows = self.old_storage_cur.fetchall()
         for row in rows:
-            #contractor_id = str(row[0])
-            contractor_id = str(binascii.hexlify(row[0]))
-            #contractor_id = binascii.hexlify(row[0])
-            #contractor_id = bytes(contractor_id)
-            #contractor_id = str(binascii.unhexlify(contractor_id))
-            #print("contractor_id: "+contractor_id)
-
-            contractor = self.ctx.contractors.get(contractor_id) or context.Contractor()
-            self.ctx.contractors[contractor_id] = contractor
-            contractor.contractor_id = contractor_id
-            contractor.nodes[self.node_name] = self
-
             trust_line = TrustLine()
             self.trust_lines.append(trust_line)
-            trust_line.contractor_id = contractor_id
+            trust_line.contractor_id = self.read_uuid(row[0])
             trust_line.contractor = row[0]
             trust_line.incoming_amount = row[1]
             trust_line.outgoing_amount = row[2]

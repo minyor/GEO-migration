@@ -3,8 +3,7 @@ import itertools
 
 
 class NodeChannel:
-    def __init__(self, contractor, node1, node2):
-        self.contractor = contractor
+    def __init__(self, node1, node2):
         self.node1 = node1
         self.node2 = node2
         self.id_on_contractor_side1 = None
@@ -31,39 +30,33 @@ class NodeChannel:
             self.node1.new_node_address
         )
 
-    def generate_trust_lines(self, channel):
-        print("\tGenerating trust lines between nodes: " +
+    def generate_trust_lines(self):
+        print()
+        print("Generating trust lines between nodes: " +
               self.node1.node_name + ", " + self.node2.node_name)
 
         self.node1.add_trust_lines(
-            channel.id_on_contractor_side2,
-            self.contractor.contractor_id
+            self.id_on_contractor_side2,
+            self.node2.node_name
         )
         self.node2.add_trust_lines(
-            channel.id_on_contractor_side1,
-            self.contractor.contractor_id
+            self.id_on_contractor_side1,
+            self.node1.node_name
         )
+
+    @staticmethod
+    def construct_channels(nodes):
+        channels = dict()
+        for node_migrator in nodes.values():
+            for trust_line in node_migrator.trust_lines:
+                contractor_tuple = NodeChannel.construct_contractor_tuple(
+                    node_migrator.node_name, trust_line.contractor_id)
+                channels[contractor_tuple] = \
+                    NodeChannel(node_migrator, nodes[trust_line.contractor_id])
+        return channels
 
     @staticmethod
     def construct_contractor_tuple(node_name1, node_name2):
         node_key_pair = [node_name1, node_name2]
         node_key_pair.sort()
         return tuple(node_key_pair)
-
-    @staticmethod
-    def list(contractors):
-        channels = dict()
-        trust_lines = dict()
-        for name, contractor in contractors.items():
-            print("Generating contractor: " + name + " nodes: " + str(len(contractor.nodes)))
-            nodes = list(contractor.nodes.values())
-            node_pairs = list(itertools.combinations(range(0, len(nodes)), r=2))
-            for pair in node_pairs:
-                node1 = nodes[pair[0]]
-                node2 = nodes[pair[1]]
-                contractor_tuple = NodeChannel.construct_contractor_tuple(node1.node_name, node2.node_name)
-                node_channel = NodeChannel(contractor, node1, node2)
-                channels[contractor_tuple] = node_channel
-                trust_lines[(contractor.contractor_id, contractor_tuple[0], contractor_tuple[1])] = node_channel
-
-        return [channels, trust_lines]
