@@ -2,6 +2,7 @@
 
 class Contractor:
     def __init__(self):
+        self.contractor_id = 0
         self.nodes = dict()
 
 

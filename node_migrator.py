@@ -47,6 +47,22 @@ class NodeMigrator(NodeGenerator):
 
         self.channel_idx += 1
 
+    def add_trust_lines(self, local_id, contractor_id):
+        for trust_line in self.trust_lines:
+            if trust_line.contractor_id != contractor_id:
+                continue
+            print(
+                "\t\tGenerating trust line for node: " + self.node_name +
+                " id: " + str(local_id) +
+                " eq: " + str(trust_line.equivalent) +
+                " gw: " + str(trust_line.is_contractor_gateway)
+            )
+            self.new_storage_cur.execute(
+                "insert into trust_lines ('state', 'contractor_id', 'equivalent', 'is_contractor_gateway') "
+                "values ('2', ?, ?, ?);",
+                (local_id, trust_line.equivalent, trust_line.is_contractor_gateway)
+            )
+
     def migrate(self):
         self.new_storage_cur.execute(
             "insert into features ('feature_name', 'feature_length', 'feature_value') "

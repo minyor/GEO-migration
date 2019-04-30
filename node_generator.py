@@ -5,12 +5,24 @@ import binascii
 import context
 
 
+class TrustLine:
+    def __init__(self):
+        self.contractor_id = None
+        self.contractor = None
+        self.incoming_amount = None
+        self.outgoing_amount = None
+        self.balance = None
+        self.is_contractor_gateway = None
+        self.equivalent = None
+
+
 class NodeGenerator():
     def __init__(self, ctx, old_node_path, new_node_path, new_node_address):
         self.ctx = ctx
         self.old_node_path = old_node_path
         self.new_node_path = new_node_path
         self.new_node_address = new_node_address
+        self.trust_lines = []
 
         os.makedirs(os.path.join(self.new_node_path, "io"), exist_ok=True)
 
@@ -24,7 +36,14 @@ class NodeGenerator():
         self.generate_conf_json()
         self.generate_tables()
 
-        self.old_storage_cur.execute("SELECT contractor FROM trust_lines;")
+        # X'1852CA72CBA64A47A4E382B663A641B1',
+        # X'0000000000000000000000000000000000000000000000000000000000004E20',
+        # X'0000000000000000000000000000000000000000000000000000000000002710',
+        # X'000000000000000000000000000000000000000000000000000000000000002710',
+        # '0', '1'
+        self.old_storage_cur.execute(
+            "SELECT contractor, incoming_amount, outgoing_amount, balance, is_contractor_gateway, equivalent "
+            "FROM trust_lines;")
         rows = self.old_storage_cur.fetchall()
         for row in rows:
             #contractor_id = str(row[0])
@@ -36,7 +55,18 @@ class NodeGenerator():
 
             contractor = self.ctx.contractors.get(contractor_id) or context.Contractor()
             self.ctx.contractors[contractor_id] = contractor
+            contractor.contractor_id = contractor_id
             contractor.nodes[self.node_name] = self
+
+            trust_line = TrustLine()
+            self.trust_lines.append(trust_line)
+            trust_line.contractor_id = contractor_id
+            trust_line.contractor = row[0]
+            trust_line.incoming_amount = row[1]
+            trust_line.outgoing_amount = row[2]
+            trust_line.balance = row[3]
+            trust_line.is_contractor_gateway = row[4]
+            trust_line.equivalent = row[5]
 
     def generate_conf_json(self):
         data = dict()

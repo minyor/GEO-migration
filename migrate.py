@@ -37,6 +37,8 @@ class Main(context.Context):
         shutil.rmtree(new_infrastructure_path, ignore_errors=True)
         nodes = os.listdir(old_infrastructure_path)
         new_node_address = self.address
+
+        print()
         for path in nodes:
             old_node_path = os.path.join(old_infrastructure_path, path)
             new_node_path = os.path.join(new_infrastructure_path, path)
@@ -49,10 +51,24 @@ class Main(context.Context):
             self.nodes[node_migrator.new_node_address] = node_migrator
             new_node_address = self.increment_node_address(new_node_address)
 
+        print()
         channels = NodeChannel.list(self.contractors)
-        for channel in channels.values():
-            channel.generate()
 
+        print()
+        for channel in channels[0].values():
+            channel.generate_channels()
+
+        for contractor in self.contractors.values():
+            print()
+            print("For contractor: " + contractor.contractor_id)
+            for channel in channels[1].values():
+                if channel.contractor.contractor_id != contractor.contractor_id:
+                    continue
+                contractor_tuple = NodeChannel.construct_contractor_tuple(
+                    channel.node1.node_name, channel.node2.node_name)
+                channel.generate_trust_lines(channels[0][contractor_tuple])
+
+        print()
         for node_migrator in self.nodes.values():
             node_migrator.migrate()
 
