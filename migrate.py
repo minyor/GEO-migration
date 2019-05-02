@@ -34,11 +34,12 @@ class Main(context.Context):
     def migrate(self):
         old_infrastructure_path = migration_conf.get("old_infrastructure_path")
         new_infrastructure_path = migration_conf.get("new_infrastructure_path")
+        mod_network_client_path = migration_conf.get("mod_network_client_path")
         shutil.rmtree(new_infrastructure_path, ignore_errors=True)
-        nodes = os.listdir(old_infrastructure_path)
-        new_node_address = self.address
 
         print()
+        new_node_address = self.address
+        nodes = os.listdir(old_infrastructure_path)
         for path in nodes:
             old_node_path = os.path.join(old_infrastructure_path, path)
             new_node_path = os.path.join(new_infrastructure_path, path)
@@ -46,8 +47,9 @@ class Main(context.Context):
                 continue
             if os.path.isdir(new_node_path):
                 continue
-            node_migrator = NodeMigrator(self, old_node_path, new_node_path, new_node_address)
+            node_migrator = NodeMigrator(self, old_node_path, new_node_path, new_node_address, mod_network_client_path)
             node_migrator.generate()
+            node_migrator.retrieve_trust_lines()
             self.nodes[node_migrator.node_name] = node_migrator
             new_node_address = self.increment_node_address(new_node_address)
 
@@ -61,6 +63,14 @@ class Main(context.Context):
             channel.generate_trust_lines()
 
         print()
+        for node_migrator in self.nodes.values():
+            node_migrator.retrieve_own_keys()
+            print()
+
+        for channel in channels.values():
+            channel.generate_contractor_keys()
+            print()
+
         for node_migrator in self.nodes.values():
             node_migrator.migrate()
 

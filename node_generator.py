@@ -5,64 +5,40 @@ import binascii
 import context
 
 
-class TrustLine:
-    def __init__(self):
-        self.id = None
-        self.contractor_id = None
-        self.contractor = None
-        self.incoming_amount = None
-        self.outgoing_amount = None
-        self.balance = None
-        self.is_contractor_gateway = None
-        self.equivalent = None
-
-
-class NodeGenerator():
+class NodeGenerator:
     def __init__(self, ctx, old_node_path, new_node_path, new_node_address):
         self.ctx = ctx
         self.old_node_path = old_node_path
         self.new_node_path = new_node_path
         self.new_node_address = new_node_address
-        self.trust_lines = []
+
+        self.node_name = "none"
+        self.read_conf_json()
 
         os.makedirs(os.path.join(self.new_node_path, "io"), exist_ok=True)
 
-        self.old_storage_con = sqlite3.connect(os.path.join(self.old_node_path, "io", "storageDB"))
-        self.old_storage_cur = self.old_storage_con.cursor()
-        self.new_storage_con = sqlite3.connect(os.path.join(self.new_node_path, "io", "storageDB"))
-        self.new_storage_cur = self.new_storage_con.cursor()
-
-    @staticmethod
-    def read_uuid(blob):
-        uuid = str(binascii.hexlify(blob))
-        return \
-            uuid[2:10] + '-' + \
-            uuid[10:14] + '-' + \
-            uuid[14:18] + '-' + \
-            uuid[18:22] + '-' + \
-            uuid[22:34]
+        self.old_storage_con = self.old_storage_cur = None
+        self.new_storage_con = self.new_storage_cur = None
+        self.db_connect(False)
 
     def generate(self):
         print("Generating node: " + self.node_name)
         self.generate_conf_json()
         self.generate_tables()
-        self.retrieve_trust_lines()
 
-    def retrieve_trust_lines(self):
-        self.old_storage_cur.execute(
-            "SELECT contractor, incoming_amount, outgoing_amount, balance, is_contractor_gateway, equivalent "
-            "FROM trust_lines;")
-        rows = self.old_storage_cur.fetchall()
-        for row in rows:
-            trust_line = TrustLine()
-            self.trust_lines.append(trust_line)
-            trust_line.contractor_id = self.read_uuid(row[0])
-            trust_line.contractor = row[0]
-            trust_line.incoming_amount = row[1]
-            trust_line.outgoing_amount = row[2]
-            trust_line.balance = row[3]
-            trust_line.is_contractor_gateway = row[4]
-            trust_line.equivalent = row[5]
+        self.new_storage_cur.execute(
+            "insert into features ('feature_name', 'feature_length', 'feature_value') "
+            "values ('EQUIVALENTS_REGISTRY_ADDRESS', '3', 'eth');"
+        )
+
+    def read_conf_json(self):
+        with open(os.path.join(self.old_node_path, "conf.json")) as conf_file:
+            data = json.load(conf_file)
+            node = data["node"]
+            self.node_name = node.get("uuid", self.node_name)
+            if self.new_node_address is None:
+                network = data["network"]
+                self.new_node_address = network.get("interface", "127.0.0.1") + ":" + str(network.get("port", 2033))
 
     def generate_conf_json(self):
         data = dict()
@@ -230,3 +206,27 @@ class NodeGenerator():
                 "FOREIGN KEY(contractor_id) REFERENCES contractors(id) ON DELETE CASCADE ON UPDATE CASCADE"
             ")"
         )
+
+    def db_connect(self, verbose=True):
+        if verbose:
+            print("Connecting to db of node: " + self.node_name)
+        self.old_storage_con = sqlite3.connect(os.path.join(self.old_node_path, "io", "storageDB"))
+        self.old_storage_cur = self.old_storage_con.cursor()
+        self.new_storage_con = sqlite3.connect(os.path.join(self.new_node_path, "io", "storageDB"))
+        self.new_storage_cur = self.new_storage_con.cursor()
+
+    def db_disconnect(self):
+        print("Disconnecting from db of node: " + self.node_name)
+        self.new_storage_con.commit()
+        self.new_storage_cur.close()
+
+    @staticmethod
+    def read_uuid(blob):
+        uuid = str(binascii.hexlify(blob))
+        return \
+            uuid[2:10] + '-' + \
+            uuid[10:14] + '-' + \
+            uuid[14:18] + '-' + \
+            uuid[18:22] + '-' + \
+            uuid[22:34]
+
