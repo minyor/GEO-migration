@@ -81,6 +81,36 @@ class NodeChannel:
                             own_key1
                         )
 
+    def generate_audit_crypto(self):
+        print("Generating audit hashes and signatures between nodes: " +
+              self.node1.node_name + ", " + self.node2.node_name)
+
+        for trust_line1 in self.node1.trust_lines.values():
+            if trust_line1.contractor_id != self.id_on_contractor_side2:
+                continue
+            channel1 = self.node1.channels.get(trust_line1.contractor_id, None)
+            channel2 = self.node2.channels.get(channel1.id_on_contractor_side, None)
+
+            for trust_line2 in self.node2.trust_lines.values():
+                if trust_line2.contractor_id != self.id_on_contractor_side1:
+                    continue
+                if trust_line2.contractor_id != channel2.id or \
+                        trust_line1.equivalent != trust_line2.equivalent:
+                    continue
+
+                print("\tGenerating audit(" +
+                      str(trust_line1.id) + ":" + str(trust_line2.id) + ")")
+                self.node1.update_audit_crypto(
+                    trust_line1.id,
+                    trust_line2.our_key_hash,
+                    trust_line2.our_signature
+                )
+                self.node2.update_audit_crypto(
+                    trust_line2.id,
+                    trust_line1.our_key_hash,
+                    trust_line1.our_signature
+                )
+
     @staticmethod
     def construct_channels(nodes):
         channels = dict()

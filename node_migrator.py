@@ -25,6 +25,12 @@ class TrustLine:
         self.is_contractor_gateway = None
         self.equivalent = None
 
+        self.number = None
+        self.our_key_hash = None
+        self.our_signature = None
+        self.own_keys_set_hash = None
+        self.contractor_keys_set_hash = None
+
 
 class OwnKey:
     def __init__(self):
@@ -108,7 +114,11 @@ class NodeMigrator(NodeGenerator):
                     "'outgoing_amount', 'incoming_amount'"
                 ") "
                 "values ("
-                "'1', ?, X'00', X'00', X'00', X'00', X'00', X'00', ?, ?, ?);",
+                    "'1', ?, X'00', X'00', X'00', X'00', "
+                    "X'0000000000000000000000000000000000000000000000000000000000000000', "
+                    "X'0000000000000000000000000000000000000000000000000000000000000000', "
+                    "?, ?, ?"
+                ");",
                 (
                     old_trust_line.id,
                     sqlite3.Binary(old_trust_line.balance),
@@ -131,6 +141,19 @@ class NodeMigrator(NodeGenerator):
                 own_key2.public_key,
                 own_key1.number,
                 own_key1.is_valid
+            )
+        )
+
+    def update_audit_crypto(self, trust_line_id, contractor_key_hash, contractor_signature):
+        self.new_storage_cur.execute(
+            "update audit set "
+                "contractor_key_hash = ?, "
+                "contractor_signature = ? "
+            "WHERE trust_line_id = ?;",
+            (
+                contractor_key_hash,
+                contractor_signature,
+                trust_line_id
             )
         )
 
@@ -166,6 +189,22 @@ class NodeMigrator(NodeGenerator):
             own_key.private_key = row[4]
             own_key.number = row[5]
             own_key.is_valid = row[6]
+
+    def hash_audits(self):
+        self.run_and_wait()
+        self.new_storage_cur.execute(
+            "SELECT number, trust_line_id, our_key_hash, our_signature, own_keys_set_hash, contractor_keys_set_hash "
+            "FROM audit;")
+        rows = self.new_storage_cur.fetchall()
+        for row in rows:
+            trust_line = self.trust_lines.get(row[1], None)
+            if trust_line is None:
+                continue
+            trust_line.number = row[0]
+            trust_line.our_key_hash = row[2]
+            trust_line.our_signature = row[3]
+            trust_line.own_keys_set_hash = row[4]
+            trust_line.contractor_keys_set_hash = row[5]
 
     def migrate(self):
         self.db_disconnect()

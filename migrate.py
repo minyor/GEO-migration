@@ -71,6 +71,15 @@ class Main(context.Context):
             channel.generate_contractor_keys()
             print()
 
+        print()
+        for node_migrator in self.nodes.values():
+            node_migrator.hash_audits()
+            print()
+
+        for channel in channels.values():
+            channel.generate_audit_crypto()
+            print()
+
         for node_migrator in self.nodes.values():
             node_migrator.migrate()
 
