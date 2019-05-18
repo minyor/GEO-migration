@@ -19,7 +19,7 @@ class Main(context.Context):
             sys.exit(2)
         for o, a in opts:
             if o == "-v":
-                verbose = True
+                self.verbose = True
             elif o in ("-h", "--help"):
                 self.usage()
                 sys.exit()
@@ -49,11 +49,10 @@ class Main(context.Context):
                 continue
             node_migrator = NodeMigrator(self, old_node_path, new_node_path, new_node_address, mod_network_client_path)
             node_migrator.generate()
-            node_migrator.retrieve_trust_lines()
+            node_migrator.retrieve_old_data()
             self.nodes[node_migrator.node_name] = node_migrator
             new_node_address = self.increment_node_address(new_node_address)
 
-        print()
         channels = NodeChannel.construct_channels(self.nodes)
 
         print()
@@ -71,7 +70,6 @@ class Main(context.Context):
             channel.generate_contractor_keys()
             print()
 
-        print()
         for node_migrator in self.nodes.values():
             node_migrator.hash_audits()
             print()

@@ -1,6 +1,7 @@
 import os
 import sqlite3
 import json
+import struct
 import binascii
 import context
 
@@ -230,3 +231,18 @@ class NodeGenerator:
             uuid[18:22] + '-' + \
             uuid[22:34]
 
+    @staticmethod
+    def serialize_ipv4_with_port(address):
+        ip_and_port = address.split(':')
+        ip_and_port[0] = ip_and_port[0].split('.')
+        address = bytearray(b'\x0c')
+        for c in ip_and_port[0]:
+            address.append(int(c))
+        return address + struct.pack("H", int(ip_and_port[1]))
+
+    @staticmethod
+    def bytes_to_str(arr):
+        val = ""
+        for byte in arr:
+            val += '{:02x}'.format(byte) + ' '
+        return val
