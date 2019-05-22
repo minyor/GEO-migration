@@ -33,15 +33,37 @@ class NodeComparator(NodeGenerator):
         new_node_run_thread.start()
 
         time.sleep(0.1)
-        result = self.run_command(
+        print("Requesting equivalents...")
+        result_eq = self.run_command(
             self.new_commands_fifo_path,
-            '13e5cf8c-5834-4e52-b65b-f9281dd1ff91\tGET:equivalents\n')
-        print('Result: "{0}"'.format(result))
-
-        result = self.run_command(
-            self.new_commands_fifo_path,
-            '13e5cf8c-5834-4e52-b65b-f9281dd1ff91\tGET:contractors/trust-lines\t0\t100\t1\n')
-        print('Result: "{0}"'.format(result))
+            '13e5cf8c-5834-4e52-b65b-f9281dd1ff91\tGET:equivalents\n').decode("utf-8")
+        result_eq = result_eq.split('\t')
+        eq_count = int(result_eq[2])
+        print("Found " + str(eq_count) + " equivalents")
+        for e in range(eq_count):
+            eq = int(result_eq[e + 3])
+            print("\tRequesting trust lines for equivalent " + str(eq) + "...")
+            result_tl = self.run_command(
+                self.new_commands_fifo_path,
+                '13e5cf8c-5834-4e52-b65b-f9281dd1ff91\tGET:contractors/trust-lines\t0\t100\t1\n').decode("utf-8")
+            #print('Result: "{0}"'.format(result_tl))
+            result_tl = result_tl.split('\t')
+            tl_count = int(result_tl[2])
+            print("\tFound " + str(tl_count) + " trust lines")
+            for t in range(tl_count):
+                trust_line_array_shift = t * 8 + 3
+                contractor_id = int(result_tl[trust_line_array_shift + 0])
+                addresses = result_tl[trust_line_array_shift + 1]
+                state = int(result_tl[trust_line_array_shift + 2])
+                own_keys = int(result_tl[trust_line_array_shift + 3])
+                contractor_keys = int(result_tl[trust_line_array_shift + 4])
+                incoming_trust_amount = float(result_tl[trust_line_array_shift + 5])
+                outgoing_trust_amount = float(result_tl[trust_line_array_shift + 6])
+                balance = float(result_tl[trust_line_array_shift + 7])
+                print("\t\tTrust line " + str(t+1) + ":" +
+                      " incoming_trust_amount="+str(incoming_trust_amount) + ";" +
+                      " outgoing_trust_amount=" + str(outgoing_trust_amount) + ";" +
+                      " balance=" + str(balance))
 
         self.clean()
 
@@ -74,13 +96,17 @@ class NodeComparator(NodeGenerator):
 
     def run_command(self, fifo, line):
         line = line.replace("\\t", '\t').replace("\\n", "\n")
-        print("Running cmd: " + line)
         line = line.encode()
         file_handler = os.fdopen(os.open(fifo, os.O_WRONLY | os.O_NONBLOCK), 'wb')
         file_handler.write(line)
         file_handler.close()
-        while self.command_result is None:
+        try_count = 0
+        max_count = 10 * 60
+        while self.command_result is None and try_count <= max_count:
             time.sleep(0.1)
+            try_count += 1
+        if try_count > max_count:
+            assert False, "No response from node " + self.node_name
         result = self.command_result
         self.command_result = None
         return result

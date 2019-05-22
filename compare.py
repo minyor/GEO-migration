@@ -1,6 +1,7 @@
 import os, sys
 import getopt
 import shutil
+import time
 import context
 
 from settings import migration_conf
@@ -40,7 +41,7 @@ class Main(context.Context):
             if not os.path.isdir(old_node_path):
                 continue
             if not os.path.isdir(new_node_path):
-                assert False, "migrated node " + path + " is not found"
+                assert False, "Migrated node " + path + " is not found"
             node_comparator = NodeComparator(
                 self, old_node_path, new_node_path,
                 old_network_client_path, new_network_client_path)
@@ -58,4 +59,8 @@ class Main(context.Context):
 
 
 if __name__ == "__main__":
+    start_time = time.time()
     Main().compare()
+    hours, rem = divmod(time.time() - start_time, 3600)
+    minutes, seconds = divmod(rem, 60)
+    print("Finished in {:0>2}:{:0>2}:{:05.2f}".format(int(hours), int(minutes), seconds))
