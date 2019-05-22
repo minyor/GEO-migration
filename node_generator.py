@@ -216,10 +216,14 @@ class NodeGenerator:
         self.new_storage_con = sqlite3.connect(os.path.join(self.new_node_path, "io", "storageDB"))
         self.new_storage_cur = self.new_storage_con.cursor()
 
-    def db_disconnect(self):
-        print("Disconnecting from db of node: " + self.node_name)
+    def db_disconnect(self, verbose=True):
+        if verbose:
+            print("Disconnecting from db of node: " + self.node_name)
+        self.old_storage_cur.close()
         self.new_storage_con.commit()
         self.new_storage_cur.close()
+        self.old_storage_con = self.old_storage_cur = None
+        self.new_storage_con = self.new_storage_cur = None
 
     @staticmethod
     def read_uuid(blob):

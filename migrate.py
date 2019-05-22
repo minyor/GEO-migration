@@ -1,6 +1,7 @@
 import os, sys
 import getopt
 import shutil
+import time
 import context
 
 from settings import migration_conf
@@ -98,4 +99,8 @@ class Main(context.Context):
 
 
 if __name__ == "__main__":
+    start_time = time.time()
     Main().migrate()
+    hours, rem = divmod(time.time() - start_time, 3600)
+    minutes, seconds = divmod(rem, 60)
+    print("Finished in {:0>2}:{:0>2}:{:05.2f}".format(int(hours), int(minutes), seconds))
