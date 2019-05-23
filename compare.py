@@ -1,6 +1,10 @@
 import os, sys
+import json
 import getopt
 import shutil
+import threading
+import subprocess
+import tempfile
 import time
 import context
 
@@ -32,6 +36,14 @@ class Main(context.Context):
         new_infrastructure_path = migration_conf.get("new_infrastructure_path")
         old_network_client_path = migration_conf.get("old_network_client_path")
         new_network_client_path = migration_conf.get("new_network_client_path")
+        old_uuid_2_address_path = migration_conf.get("old_uuid_2_address_path")
+
+        old_uuid_2_address_dir = old_uuid_2_address_path[:old_uuid_2_address_path.rindex('/')]
+        print("old_uuid_2_address_dir="+old_uuid_2_address_dir)
+        old_uuid_2_address_thread = threading.Thread(
+            target=self.run_uuid_2_address,
+            args=(old_uuid_2_address_dir, old_uuid_2_address_path))
+        old_uuid_2_address_thread.start()
 
         print()
         nodes = os.listdir(old_infrastructure_path)
@@ -44,11 +56,42 @@ class Main(context.Context):
                 assert False, "Migrated node " + path + " is not found"
             node_comparator = NodeComparator(
                 self, old_node_path, new_node_path,
-                old_network_client_path, new_network_client_path)
-            self.nodes[node_comparator.node_name] = node_comparator
+                old_network_client_path, new_network_client_path,
+                old_uuid_2_address_path)
+            self.nodes[node_comparator.new_node_address] = node_comparator
 
         for node_comparator in self.nodes.values():
             node_comparator.compare()
+
+        old_cpm_file_path = os.path.join(old_infrastructure_path, "compare.json")
+        new_cpm_file_path = os.path.join(new_infrastructure_path, "compare.json")
+        with open(old_cpm_file_path, 'w') as cpm_file_out:
+            json.dump(self.old_comparision_json, cpm_file_out, sort_keys=True, indent=4, ensure_ascii=False)
+        with open(new_cpm_file_path, 'w') as cpm_file_out:
+            json.dump(self.new_comparision_json, cpm_file_out, sort_keys=True, indent=4, ensure_ascii=False)
+
+        print()
+        old_cpm_file = str(json.load(open(old_cpm_file_path)))
+        new_cpm_file = str(json.load(open(new_cpm_file_path)))
+        if old_cpm_file == new_cpm_file:
+            print("Success: old and new comparision json files are equal!")
+        else:
+            print("Failure: old and new comparision json files differs!")
+
+    def run_uuid_2_address(self, node_path, client_path):
+        print("Starting uuid_2_address...")
+        with tempfile.TemporaryFile() as client_f:
+            client_proc = None
+            if self.verbose:
+                client_proc = subprocess.Popen(
+                    ["bash", "-c", "cd " + node_path + ";" + client_path + ""]
+                )
+            else:
+                client_proc = subprocess.Popen(
+                    ["bash", "-c", "cd " + node_path + ";" + client_path + ""],
+                    stdout=client_f, stderr=client_f
+                )
+            client_proc.wait()
 
     @staticmethod
     def usage():
@@ -64,3 +107,6 @@ if __name__ == "__main__":
     hours, rem = divmod(time.time() - start_time, 3600)
     minutes, seconds = divmod(rem, 60)
     print("Finished in {:0>2}:{:0>2}:{:05.2f}".format(int(hours), int(minutes), seconds))
+
+    with tempfile.TemporaryFile() as client_f:
+        subprocess.Popen(['kill', '-9', str(os.getpid())], stdout=client_f, stderr=client_f)
