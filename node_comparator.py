@@ -46,6 +46,8 @@ class NodeComparator(NodeGenerator):
 
     def retrieve_data_from_old_node(self):
         print("Process old node...")
+        commands_fifo_path = self.old_commands_fifo_path
+
         old_node_result_fifo_thread = threading.Thread(target=self.open_node_result_fifo, args=(self.old_result_fifo_path,))
         old_node_result_fifo_thread.start()
 
@@ -58,7 +60,7 @@ class NodeComparator(NodeGenerator):
         time.sleep(0.1)
         print("Requesting equivalents...")
         result_eq = self.run_command(
-            self.old_commands_fifo_path,
+            commands_fifo_path,
             '13e5cf8c-5834-4e52-b65b-f9281dd1ff91\tGET:equivalents\n').decode("utf-8")
         result_eq = result_eq.split('\t')
         eq_count = int(result_eq[2])
@@ -67,9 +69,8 @@ class NodeComparator(NodeGenerator):
             eq = int(result_eq[e + 3])
             print("\tRequesting trust lines for equivalent " + str(eq) + "...")
             result_tl = self.run_command(
-                self.old_commands_fifo_path,
-                '13e5cf8c-5834-4e52-b65b-f9281dd1ff91\tGET:contractors/trust-lines\t0\t100\t1\n').decode("utf-8")
-            #print('Result: "{0}"'.format(result_tl))
+                commands_fifo_path,
+                '13e5cf8c-5834-4e52-b65b-f9281dd1ff91\tGET:contractors/trust-lines\t0\t100000\t'+str(eq)+'\n').decode("utf-8")
             result_tl = result_tl.split('\t')
             tl_count = int(result_tl[2])
             print("\tFound " + str(tl_count) + " trust lines")
@@ -84,16 +85,51 @@ class NodeComparator(NodeGenerator):
                       " incoming=" + str(incoming_trust_amount) + ";" +
                       " outgoing=" + str(outgoing_trust_amount) + ";" +
                       " balance=" + str(balance))
-                json_node[str(eq)+","+contractor_id] = {
+                json_node["tl_"+str(eq)+","+contractor_id] = {
                     "equivalent": eq,
                     "contractor_id": contractor_id,
                     "incoming_trust_amount": incoming_trust_amount,
                     "outgoing_trust_amount": outgoing_trust_amount,
                     "balance": balance
                 }
+            print("\tRequesting history trust lines for equivalent " + str(eq) + "...")
+            result_tl = self.run_command(
+                commands_fifo_path,
+                '13e5cf8c-5834-4e52-b65b-f9281dd1ff91\tGET:history/trust-lines\t0\t100000\tnull\tnull\t'+str(eq)+'\n').\
+                decode("utf-8")
+            #print('Result: "{0}"'.format(result_tl))
+            result_tl = result_tl.split('\t')
+            tl_count = int(result_tl[2])
+            print("\tFound " + str(tl_count) + " history trust lines")
+            for t in range(tl_count):
+                trust_line_array_shift = t * 5 + 3
+                transaction_uuid = result_tl[trust_line_array_shift + 0]
+                timestamp = int(result_tl[trust_line_array_shift + 1])
+                addresses = result_tl[trust_line_array_shift + 2]
+                operation_type = result_tl[trust_line_array_shift + 3]
+                summ = float(result_tl[trust_line_array_shift + 4])
+                node = self.ctx.nodes.get(addresses)
+                if node is None:
+                    print("\t\tHistory tl " + str(t+1) + " Skip unknown node " + addresses)
+                    continue
+                print("\t\tHistory tl " + str(t+1) + ":" +
+                      " id="+str(transaction_uuid) + ";" +
+                      " timestamp=" + str(timestamp) + ";" +
+                      " type=" + str(operation_type) + ";" +
+                      " summ=" + str(summ))
+                json_node["h_tl_"+str(eq)+","+transaction_uuid] = {
+                    "equivalent": eq,
+                    "transaction_uuid": transaction_uuid,
+                    "timestamp": timestamp,
+                    "address": addresses,
+                    "operation_type": operation_type,
+                    "sum": summ
+                }
 
     def retrieve_data_from_new_node(self):
         print("Process new node...")
+        commands_fifo_path = self.new_commands_fifo_path
+
         new_node_result_fifo_thread = threading.Thread(target=self.open_node_result_fifo, args=(self.new_result_fifo_path,))
         new_node_result_fifo_thread.start()
 
@@ -106,7 +142,7 @@ class NodeComparator(NodeGenerator):
         time.sleep(0.1)
         print("Requesting equivalents...")
         result_eq = self.run_command(
-            self.new_commands_fifo_path,
+            commands_fifo_path,
             '13e5cf8c-5834-4e52-b65b-f9281dd1ff91\tGET:equivalents\n').decode("utf-8")
         result_eq = result_eq.split('\t')
         eq_count = int(result_eq[2])
@@ -115,9 +151,8 @@ class NodeComparator(NodeGenerator):
             eq = int(result_eq[e + 3])
             print("\tRequesting trust lines for equivalent " + str(eq) + "...")
             result_tl = self.run_command(
-                self.new_commands_fifo_path,
-                '13e5cf8c-5834-4e52-b65b-f9281dd1ff91\tGET:contractors/trust-lines\t0\t100\t1\n').decode("utf-8")
-            #print('Result: "{0}"'.format(result_tl))
+                commands_fifo_path,
+                '13e5cf8c-5834-4e52-b65b-f9281dd1ff91\tGET:contractors/trust-lines\t0\t100000\t'+str(eq)+'\n').decode("utf-8")
             result_tl = result_tl.split('\t')
             tl_count = int(result_tl[2])
             print("\tFound " + str(tl_count) + " trust lines")
@@ -132,7 +167,7 @@ class NodeComparator(NodeGenerator):
                 outgoing_trust_amount = float(result_tl[trust_line_array_shift + 6])
                 balance = float(result_tl[trust_line_array_shift + 7])
                 address = addresses[addresses.find(' ')+1:]
-                node = self.ctx.nodes.get(address)
+                node = self.ctx.nodes_by_address.get(address)
                 if node is None:
                     assert False, "Can't find node by address " + address
                 print("\t\tTrust line " + str(t+1) + ":" +
@@ -140,19 +175,53 @@ class NodeComparator(NodeGenerator):
                       " incoming=" + str(incoming_trust_amount) + ";" +
                       " outgoing=" + str(outgoing_trust_amount) + ";" +
                       " balance=" + str(balance))
-                json_node[str(eq)+","+node.node_name] = {
+                json_node["tl_"+str(eq)+","+node.node_name] = {
                     "equivalent": eq,
                     "contractor_id": node.node_name,
                     "incoming_trust_amount": incoming_trust_amount,
                     "outgoing_trust_amount": outgoing_trust_amount,
                     "balance": balance
                 }
+            print("\tRequesting history trust lines for equivalent " + str(eq) + "...")
+            result_tl = self.run_command(
+                commands_fifo_path,
+                '13e5cf8c-5834-4e52-b65b-f9281dd1ff91\tGET:history/trust-lines\t0\t100000\tnull\tnull\t'+str(eq)+'\n').\
+                decode("utf-8")
+            #print('Result: "{0}"'.format(result_tl))
+            result_tl = result_tl.split('\t')
+            tl_count = int(result_tl[2])
+            print("\tFound " + str(tl_count) + " history trust lines")
+            for t in range(tl_count):
+                trust_line_array_shift = t * 5 + 3
+                transaction_uuid = result_tl[trust_line_array_shift + 0]
+                timestamp = int(result_tl[trust_line_array_shift + 1])
+                addresses = result_tl[trust_line_array_shift + 2]
+                operation_type = result_tl[trust_line_array_shift + 3]
+                summ = float(result_tl[trust_line_array_shift + 4])
+                address = addresses[addresses.find(' ')+1:]
+                node = self.ctx.nodes_by_address.get(address)
+                if node is None:
+                    assert False, "Can't find node by address " + address
+                print("\t\tHistory tl " + str(t+1) + ":" +
+                      " id="+str(transaction_uuid) + ";" +
+                      " timestamp=" + str(timestamp) + ";" +
+                      " type=" + str(operation_type) + ";" +
+                      " summ=" + str(summ))
+                json_node["h_tl_"+str(eq)+","+transaction_uuid] = {
+                    "equivalent": eq,
+                    "transaction_uuid": transaction_uuid,
+                    "timestamp": timestamp,
+                    "address": node.node_name,
+                    "operation_type": operation_type,
+                    "sum": summ
+                }
 
     def open_node_result_fifo(self, result_fifo_path):
         print("Opening result FIFO for node " + self.node_name)
         while True:
             try:
-                self.result_fifo_handler = os.fdopen(os.open(result_fifo_path, os.O_RDONLY | os.O_NONBLOCK), 'rb')
+                #self.result_fifo_handler = os.fdopen(os.open(result_fifo_path, os.O_RDONLY | os.O_NONBLOCK), 'rb')
+                self.result_fifo_handler = os.fdopen(os.open(result_fifo_path, os.O_NONBLOCK), 'rb')
                 break
             except:
                 continue
@@ -186,9 +255,11 @@ class NodeComparator(NodeGenerator):
         line = line.encode()
         while True:
             try:
-                file_handler = os.fdopen(os.open(fifo, os.O_WRONLY | os.O_NONBLOCK), 'wb')
-                file_handler.write(line)
-                file_handler.close()
+                fifo_write = open(fifo, 'wb')
+                fifo_write.write(line)
+                fifo_write.flush()
+                fifo_write.close()
+
                 try_count = 0
                 max_count = 10 * 60
                 while self.command_result is None and try_count <= max_count:

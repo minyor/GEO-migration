@@ -58,7 +58,8 @@ class Main(context.Context):
                 self, old_node_path, new_node_path,
                 old_network_client_path, new_network_client_path,
                 old_uuid_2_address_path)
-            self.nodes[node_comparator.new_node_address] = node_comparator
+            self.nodes[node_comparator.node_name] = node_comparator
+            self.nodes_by_address[node_comparator.new_node_address] = node_comparator
 
         for node_comparator in self.nodes.values():
             node_comparator.compare()
