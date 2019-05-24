@@ -29,7 +29,7 @@ class Main(context.Context):
                 sys.exit()
             else:
                 assert False, "unhandled option"
-        self.observers = self.observers.split(',')
+        self.in_memory = True
 
     def compare(self):
         old_infrastructure_path = migration_conf.get("old_infrastructure_path")
@@ -64,6 +64,8 @@ class Main(context.Context):
         for node_comparator in self.nodes.values():
             node_comparator.compare()
 
+        print()
+        print("Saving 'compare.json' files...")
         old_cpm_file_path = os.path.join(old_infrastructure_path, "compare.json")
         new_cpm_file_path = os.path.join(new_infrastructure_path, "compare.json")
         with open(old_cpm_file_path, 'w') as cpm_file_out:
@@ -71,7 +73,16 @@ class Main(context.Context):
         with open(new_cpm_file_path, 'w') as cpm_file_out:
             json.dump(self.new_comparision_json, cpm_file_out, sort_keys=True, indent=4, ensure_ascii=False)
 
+        print("Saving 'ignored.json' files...")
+        old_ign_file_path = os.path.join(old_infrastructure_path, "ignored.json")
+        new_ign_file_path = os.path.join(new_infrastructure_path, "ignored.json")
+        with open(old_ign_file_path, 'w') as cpm_file_out:
+            json.dump(self.old_ignored_json, cpm_file_out, sort_keys=True, indent=4, ensure_ascii=False)
+        with open(new_ign_file_path, 'w') as cpm_file_out:
+            json.dump(self.new_ignored_json, cpm_file_out, sort_keys=True, indent=4, ensure_ascii=False)
+
         print()
+        print("Calculating migration outcome...")
         old_cpm_file = str(json.load(open(old_cpm_file_path)))
         new_cpm_file = str(json.load(open(new_cpm_file_path)))
         if old_cpm_file == new_cpm_file:

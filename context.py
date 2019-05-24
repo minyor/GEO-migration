@@ -10,6 +10,8 @@ class Context:
         self.nodes_by_address = dict()
         self.old_comparision_json = {}
         self.new_comparision_json = {}
+        self.old_ignored_json = {}
+        self.new_ignored_json = {}
 
 
 class Channel:
