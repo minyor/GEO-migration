@@ -13,7 +13,7 @@ class Main(context.Context):
     def __init__(self):
         super().__init__()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "ha:o:v", ["help"])
+            opts, args = getopt.getopt(sys.argv[1:], "ha:o:vm", ["help"])
         except getopt.GetoptError as err:
             print(str(err))
             self.usage()
@@ -21,6 +21,8 @@ class Main(context.Context):
         for o, a in opts:
             if o == "-v":
                 self.verbose = True
+            elif o == "-m":
+                self.in_memory = True
             elif o in ("-h", "--help"):
                 self.usage()
                 sys.exit()
@@ -49,8 +51,12 @@ class Main(context.Context):
             if os.path.isdir(new_node_path):
                 continue
             node_migrator = NodeMigrator(self, old_node_path, new_node_path, new_node_address, mod_network_client_path)
+            if not self.in_memory:
+                node_migrator.db_connect(False)
             node_migrator.generate()
             node_migrator.retrieve_old_data()
+            if not self.in_memory:
+                node_migrator.db_disconnect(False)
             self.nodes[node_migrator.node_name] = node_migrator
             new_node_address = self.increment_node_address(new_node_address)
 

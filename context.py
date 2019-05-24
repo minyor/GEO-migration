@@ -5,6 +5,7 @@ class Context:
         self.address = None
         self.observers = "127.0.0.1:4000,127.0.0.1:4001,127.0.0.1:4002"
         self.verbose = False
+        self.in_memory = False
         self.nodes = dict()
         self.nodes_by_address = dict()
         self.old_comparision_json = {}

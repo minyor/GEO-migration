@@ -22,6 +22,8 @@ class NodeMigrator(NodeGenerator):
         self.own_keys = []
 
     def add_channel(self, pk, sk, ok, id_on_contractor_side, contractor_address):
+        if not self.ctx.in_memory:
+            self.db_connect(False)
         self.new_storage_cur.execute(
             "insert into contractors ('id', 'id_on_contractor_side', 'crypto_key', 'is_confirmed') "
             "values (?, ?, "
@@ -43,8 +45,12 @@ class NodeMigrator(NodeGenerator):
         )
 
         self.channel_idx += 1
+        if not self.ctx.in_memory:
+            self.db_disconnect(False)
 
     def add_trust_lines(self, local_id, contractor_id):
+        if not self.ctx.in_memory:
+            self.db_connect(False)
         for old_trust_line in self.old_trust_lines:
             if old_trust_line.contractor_id != contractor_id:
                 continue
@@ -87,8 +93,12 @@ class NodeMigrator(NodeGenerator):
                     sqlite3.Binary(old_trust_line.incoming_amount)
                 )
             )
+        if not self.ctx.in_memory:
+            self.db_disconnect(False)
 
     def add_contractor_key(self, own_key1, own_key2):
+        if not self.ctx.in_memory:
+            self.db_connect(False)
         self.new_storage_cur.execute(
             "insert into contractor_keys ("
                 "'hash', 'trust_line_id', 'keys_set_sequence_number', "
@@ -104,8 +114,12 @@ class NodeMigrator(NodeGenerator):
                 own_key1.is_valid
             )
         )
+        if not self.ctx.in_memory:
+            self.db_disconnect(False)
 
     def update_audit_crypto(self, trust_line_id, contractor_key_hash, contractor_signature):
+        if not self.ctx.in_memory:
+            self.db_connect(False)
         self.new_storage_cur.execute(
             "update audit set "
                 "contractor_key_hash = ?, "
@@ -117,6 +131,8 @@ class NodeMigrator(NodeGenerator):
                 trust_line_id
             )
         )
+        if not self.ctx.in_memory:
+            self.db_disconnect(False)
 
     def retrieve_old_data(self):
         self.retrieve_old_trust_lines()
@@ -157,6 +173,8 @@ class NodeMigrator(NodeGenerator):
 
     def retrieve_own_keys(self):
         self.run_and_wait()
+        if not self.ctx.in_memory:
+            self.db_connect(False)
         self.new_storage_cur.execute(
             "SELECT hash, trust_line_id, keys_set_sequence_number, public_key, private_key, number, is_valid "
             "FROM own_keys;")
@@ -171,9 +189,13 @@ class NodeMigrator(NodeGenerator):
             own_key.private_key = row[4]
             own_key.number = row[5]
             own_key.is_valid = row[6]
+        if not self.ctx.in_memory:
+            self.db_disconnect(False)
 
     def hash_audits(self):
         self.run_and_wait()
+        if not self.ctx.in_memory:
+            self.db_connect(False)
         self.new_storage_cur.execute(
             "SELECT number, trust_line_id, our_key_hash, our_signature, own_keys_set_hash, contractor_keys_set_hash "
             "FROM audit;")
@@ -187,6 +209,8 @@ class NodeMigrator(NodeGenerator):
             trust_line.our_signature = row[3]
             trust_line.own_keys_set_hash = row[4]
             trust_line.contractor_keys_set_hash = row[5]
+        if not self.ctx.in_memory:
+            self.db_disconnect(False)
 
     def migrate_history(self):
         trust_line_record_type = 1
@@ -252,12 +276,15 @@ class NodeMigrator(NodeGenerator):
         )
 
     def migrate(self):
+        if not self.ctx.in_memory:
+            self.db_connect(False)
         self.migrate_history()
         self.db_disconnect()
         print()
 
     def run_and_wait(self):
-        self.db_disconnect()
+        if self.ctx.in_memory:
+            self.db_disconnect()
         print("Starting node: " + self.node_name)
         with tempfile.TemporaryFile() as client_f:
             client_proc = None
@@ -271,4 +298,5 @@ class NodeMigrator(NodeGenerator):
                     stdout=client_f, stderr=client_f
                 )
             client_proc.wait()
-        self.db_connect()
+        if self.ctx.in_memory:
+            self.db_connect()

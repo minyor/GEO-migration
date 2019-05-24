@@ -20,7 +20,8 @@ class NodeGenerator:
 
         self.old_storage_con = self.old_storage_cur = None
         self.new_storage_con = self.new_storage_cur = None
-        self.db_connect(False)
+        if self.ctx.in_memory:
+            self.db_connect(False)
 
     def generate(self):
         print("Generating node: " + self.node_name)
