@@ -1,17 +1,45 @@
+import os
+import subprocess
+import tempfile
 
 
 class Context:
     def __init__(self):
-        self.address = None
-        self.observers = "127.0.0.1:4000,127.0.0.1:4001,127.0.0.1:4002"
+        # For all operations:
         self.verbose = False
-        self.in_memory = False
         self.nodes = dict()
         self.nodes_by_address = dict()
+
+        # Migration operation specific:
+        self.address = None
+        self.observers = "127.0.0.1:4000,127.0.0.1:4001,127.0.0.1:4002"
+        self.in_memory = False
+
+        # Comparision operation specific:
         self.old_comparision_json = {}
         self.new_comparision_json = {}
         self.old_ignored_json = {}
         self.new_ignored_json = {}
+
+    def run_uuid_2_address(self, node_path, client_path):
+        print("Starting uuid_2_address...")
+        with tempfile.TemporaryFile() as client_f:
+            client_proc = None
+            if self.verbose:
+                client_proc = subprocess.Popen(
+                    ["bash", "-c", "cd " + node_path + ";" + client_path + ""]
+                )
+            else:
+                client_proc = subprocess.Popen(
+                    ["bash", "-c", "cd " + node_path + ";" + client_path + ""],
+                    stdout=client_f, stderr=client_f
+                )
+            client_proc.wait()
+
+    @staticmethod
+    def terminate():
+        with tempfile.TemporaryFile() as client_f:
+            subprocess.Popen(['kill', '-9', str(os.getpid())], stdout=client_f, stderr=client_f)
 
 
 class Channel:

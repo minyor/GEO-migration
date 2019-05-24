@@ -7,7 +7,7 @@ import time
 import context
 
 from settings import migration_conf
-from node_comparator import NodeComparator
+from node_validator import NodeValidator
 
 
 class Main(context.Context):
@@ -52,49 +52,22 @@ class Main(context.Context):
                 continue
             if not os.path.isdir(new_node_path):
                 assert False, "Migrated node " + path + " is not found"
-            node_comparator = NodeComparator(
+            node_validator = NodeValidator(
                 self, old_node_path, new_node_path,
                 old_network_client_path, new_network_client_path,
                 old_uuid_2_address_path)
-            self.nodes[node_comparator.node_name] = node_comparator
-            self.nodes_by_address[node_comparator.new_node_address] = node_comparator
+            self.nodes[node_validator.node_name] = node_validator
+            self.nodes_by_address[node_validator.new_node_address] = node_validator
 
-        for node_comparator in self.nodes.values():
-            node_comparator.compare()
-
-        print()
-        print("Saving 'compare.json' files...")
-        old_cpm_file_path = os.path.join(old_infrastructure_path, "compare.json")
-        new_cpm_file_path = os.path.join(new_infrastructure_path, "compare.json")
-        with open(old_cpm_file_path, 'w') as cpm_file_out:
-            json.dump(self.old_comparision_json, cpm_file_out, sort_keys=True, indent=4, ensure_ascii=False)
-        with open(new_cpm_file_path, 'w') as cpm_file_out:
-            json.dump(self.new_comparision_json, cpm_file_out, sort_keys=True, indent=4, ensure_ascii=False)
-
-        print("Saving 'ignored.json' files...")
-        old_ign_file_path = os.path.join(old_infrastructure_path, "ignored.json")
-        new_ign_file_path = os.path.join(new_infrastructure_path, "ignored.json")
-        with open(old_ign_file_path, 'w') as cpm_file_out:
-            json.dump(self.old_ignored_json, cpm_file_out, sort_keys=True, indent=4, ensure_ascii=False)
-        with open(new_ign_file_path, 'w') as cpm_file_out:
-            json.dump(self.new_ignored_json, cpm_file_out, sort_keys=True, indent=4, ensure_ascii=False)
-
-        print()
-        print("Calculating migration outcome...")
-        old_cpm_file = str(json.load(open(old_cpm_file_path)))
-        new_cpm_file = str(json.load(open(new_cpm_file_path)))
-        if old_cpm_file == new_cpm_file:
-            print("Success: old and new comparision json files are equal!")
-        else:
-            print("Failure: old and new comparision json files differs!")
-        print()
+        for node_validator in self.nodes.values():
+            node_validator.validate()
 
     @staticmethod
     def usage():
         print("Usage:")
-        print("\tpython compare.py [-v]")
+        print("\tpython validate.py [-v]")
         print("Example:")
-        print("\tpython compare.py")
+        print("\tpython validate.py")
 
 
 if __name__ == "__main__":
