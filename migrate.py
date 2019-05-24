@@ -99,9 +99,11 @@ class Main(context.Context):
     @staticmethod
     def usage():
         print("Usage:")
-        print("\tpython migrate.py [-v] [-a address] [-o observers]")
+        print("\tpython migrate.py [-v] [-m] [-a address] [-o observers]")
         print("Example:")
         print("\tpython migrate.py -o 127.0.0.1:4000,127.0.0.1:4001,127.0.0.1:4002")
+        print("\tNote: -v is verbose output")
+        print("\tNote: -m is 'in_memory' mode (Faster but high RAM usage!!)")
 
 
 if __name__ == "__main__":
