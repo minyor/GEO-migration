@@ -57,6 +57,9 @@ class NodeComparator(NodeGenerator):
         self.ctx.old_comparision_json[self.node_name] = {}
         json_node = self.ctx.old_comparision_json[self.node_name]
 
+        self.ctx.old_ignored_json[self.node_name] = {}
+        json_ignored_node = self.ctx.old_ignored_json[self.node_name]
+
         time.sleep(0.1)
         print("Requesting equivalents...")
         result_eq = self.run_command(
@@ -68,8 +71,8 @@ class NodeComparator(NodeGenerator):
         for e in range(eq_count):
             eq = int(result_eq[e + 3])
             self.retrieve_tl_from_old_node(commands_fifo_path, json_node, eq)
-            self.retrieve_h_tl_from_old_node(commands_fifo_path, json_node, eq)
-            self.retrieve_h_p_from_old_node(commands_fifo_path, json_node, eq)
+            self.retrieve_h_tl_from_old_node(commands_fifo_path, json_node, json_ignored_node, eq)
+            self.retrieve_h_p_from_old_node(commands_fifo_path, json_node, json_ignored_node, eq)
 
     def retrieve_tl_from_old_node(self, commands_fifo_path, json_node, eq):
         print("\tRequesting trust lines for equivalent " + str(eq) + "...")
@@ -98,7 +101,7 @@ class NodeComparator(NodeGenerator):
                 "balance": balance
             }
 
-    def retrieve_h_tl_from_old_node(self, commands_fifo_path, json_node, eq):
+    def retrieve_h_tl_from_old_node(self, commands_fifo_path, json_node, json_ignored_node, eq):
         print("\tRequesting history trust lines for equivalent " + str(eq) + "...")
         result_tl = self.run_command(
             commands_fifo_path,
@@ -116,7 +119,15 @@ class NodeComparator(NodeGenerator):
             summ = float(result_tl[trust_line_array_shift + 4])
             node = self.ctx.nodes.get(addresses)
             if node is None:
-                print("\t\tHistory tl " + str(t+1) + " Skip unknown node " + addresses)
+                print("\t\tHistory tl " + str(t+1) + " Ignore unknown node " + addresses)
+                json_ignored_node["h_tl_"+str(eq)+","+transaction_uuid] = {
+                    "equivalent": eq,
+                    "transaction_uuid": transaction_uuid,
+                    "timestamp": timestamp,
+                    "address": addresses,
+                    "operation_type": operation_type,
+                    "sum": summ
+                }
                 continue
             print("\t\tHistory tl " + str(t+1) + ":" +
                   " id="+str(transaction_uuid) + ";" +
@@ -132,7 +143,7 @@ class NodeComparator(NodeGenerator):
                 "sum": summ
             }
 
-    def retrieve_h_p_from_old_node(self, commands_fifo_path, json_node, eq):
+    def retrieve_h_p_from_old_node(self, commands_fifo_path, json_node, json_ignored_node, eq):
         print("\tRequesting history payments for equivalent " + str(eq) + "...")
         result_tl = self.run_command(
             commands_fifo_path,
@@ -153,7 +164,16 @@ class NodeComparator(NodeGenerator):
             balance = float(result_tl[trust_line_array_shift + 5])
             node = self.ctx.nodes.get(addresses)
             if node is None:
-                print("\t\tHistory p " + str(t+1) + " Skip unknown node " + addresses)
+                print("\t\tHistory p " + str(t+1) + " Ignore unknown node " + addresses)
+                json_ignored_node["h_p_"+str(eq)+","+transaction_uuid] = {
+                    "equivalent": eq,
+                    "transaction_uuid": transaction_uuid,
+                    "timestamp": timestamp,
+                    "address": addresses,
+                    "payment_type": payment_type,
+                    "sum": summ,
+                    "balance": balance
+                }
                 continue
             print("\t\tHistory p " + str(t+1) + ":" +
                   " id="+str(transaction_uuid) + ";" +
