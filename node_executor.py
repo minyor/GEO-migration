@@ -34,8 +34,9 @@ class NodeExecutor(NodeGenerator):
             with open(os.path.join(self.old_node_path, "conf.json"), 'w') as conf_file_out:
                 json.dump(data, conf_file_out, sort_keys=True, indent=4, ensure_ascii=False)
 
-    def open_node_result_fifo(self, result_fifo_path):
-        print("Opening result FIFO for node " + self.node_name)
+    def open_node_result_fifo(self, result_fifo_path, verbose=True):
+        if verbose:
+            print("Opening result FIFO for node " + self.node_name)
         while True:
             try:
                 #self.result_fifo_handler = os.fdopen(os.open(result_fifo_path, os.O_RDONLY | os.O_NONBLOCK), 'rb')
@@ -53,8 +54,9 @@ class NodeExecutor(NodeGenerator):
                 continue
             self.command_result = data
 
-    def run_node(self, node_path, client_path):
-        print("Starting node: " + self.node_name)
+    def run_node(self, node_path, client_path, verbose=True):
+        if verbose:
+            print("Starting node: " + self.node_name)
         with tempfile.TemporaryFile() as client_f:
             client_proc = None
             if self.ctx.verbose:
@@ -93,9 +95,10 @@ class NodeExecutor(NodeGenerator):
                 time.sleep(0.1)
                 continue
 
-    def clean(self):
-        with tempfile.TemporaryFile() as client_f:
-            subprocess.Popen(['killall', '-q', self.new_client_path], stdout=client_f, stderr=client_f)
-            subprocess.Popen(['killall', '-q', self.old_client_path], stdout=client_f, stderr=client_f)
+    def clean(self, also_clients=True):
+        if also_clients:
+            with tempfile.TemporaryFile() as client_f:
+                subprocess.Popen(['killall', '-q', self.new_client_path], stdout=client_f, stderr=client_f)
+                subprocess.Popen(['killall', '-q', self.old_client_path], stdout=client_f, stderr=client_f)
         self.result_fifo_handler.close()
         self.result_fifo_handler = None

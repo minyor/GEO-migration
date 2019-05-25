@@ -25,7 +25,8 @@ class NodeComparator(NodeExecutor):
         print("Process old node...")
         commands_fifo_path = self.old_commands_fifo_path
 
-        old_node_result_fifo_thread = threading.Thread(target=self.open_node_result_fifo, args=(self.old_result_fifo_path,))
+        old_node_result_fifo_thread =\
+            threading.Thread(target=self.open_node_result_fifo, args=(self.old_result_fifo_path,))
         old_node_result_fifo_thread.start()
 
         old_node_run_thread = threading.Thread(target=self.run_node, args=(self.old_node_path, self.old_client_path))
@@ -55,7 +56,8 @@ class NodeComparator(NodeExecutor):
         print("\tRequesting trust lines for equivalent " + str(eq) + "...")
         result_tl = self.run_command(
             commands_fifo_path,
-            '13e5cf8c-5834-4e52-b65b-f9281dd1ff91\tGET:contractors/trust-lines\t0\t100000\t'+str(eq)+'\n').decode("utf-8")
+            '13e5cf8c-5834-4e52-b65b-f9281dd1ff91\tGET:contractors/trust-lines\t0\t100000\t'+str(eq)+'\n').\
+            decode("utf-8")
         result_tl = result_tl.split('\t')
         tl_count = int(result_tl[2])
         print("\tFound " + str(tl_count) + " trust lines")
@@ -172,7 +174,8 @@ class NodeComparator(NodeExecutor):
         print("Process new node...")
         commands_fifo_path = self.new_commands_fifo_path
 
-        new_node_result_fifo_thread = threading.Thread(target=self.open_node_result_fifo, args=(self.new_result_fifo_path,))
+        new_node_result_fifo_thread =\
+            threading.Thread(target=self.open_node_result_fifo,args=(self.new_result_fifo_path,))
         new_node_result_fifo_thread.start()
 
         new_node_run_thread = threading.Thread(target=self.run_node, args=(self.new_node_path, self.new_client_path))
@@ -199,7 +202,8 @@ class NodeComparator(NodeExecutor):
         print("\tRequesting trust lines for equivalent " + str(eq) + "...")
         result_tl = self.run_command(
             commands_fifo_path,
-            '13e5cf8c-5834-4e52-b65b-f9281dd1ff91\tGET:contractors/trust-lines\t0\t100000\t'+str(eq)+'\n').decode("utf-8")
+            '13e5cf8c-5834-4e52-b65b-f9281dd1ff91\tGET:contractors/trust-lines\t0\t100000\t'+str(eq)+'\n').\
+            decode("utf-8")
         result_tl = result_tl.split('\t')
         tl_count = int(result_tl[2])
         print("\tFound " + str(tl_count) + " trust lines")

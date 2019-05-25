@@ -5,7 +5,7 @@ migration_conf = {
     "new_infrastructure_path": "/media/Root_2/Data/Dev/Migration/GEO",
     #"old_infrastructure_path": "/media/Root_2/Data/Dev/Migration/io",
     #"new_infrastructure_path": "/media/Root_2/Data/Dev/Migration/io_new",
-    "mod_network_client_path": "/media/Root_2/Data/Dev/Migration/geo_network_client",
+    "mod_network_client_path": "/media/Root_2/Data/Dev/Migration/geo_network_client_mod",
 
     # Comparision parameters
     "old_network_client_path": "/media/Root_2/Data/Dev/Migration/client_prod",

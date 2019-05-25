@@ -29,7 +29,7 @@ class Main(context.Context):
                 assert False, "unhandled option"
         self.in_memory = True
 
-    def compare(self):
+    def validate(self):
         old_infrastructure_path = migration_conf.get("old_infrastructure_path")
         new_infrastructure_path = migration_conf.get("new_infrastructure_path")
         old_network_client_path = migration_conf.get("old_network_client_path")
@@ -72,7 +72,7 @@ class Main(context.Context):
 
 if __name__ == "__main__":
     start_time = time.time()
-    Main().compare()
+    Main().validate()
     hours, rem = divmod(time.time() - start_time, 3600)
     minutes, seconds = divmod(rem, 60)
     print("Finished in {:0>2}:{:0>2}:{:05.2f}".format(int(hours), int(minutes), seconds))
