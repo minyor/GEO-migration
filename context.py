@@ -81,7 +81,7 @@ class OwnKey:
         self.trust_line_id = None
         self.keys_set_sequence_number = None
         self.public_key = None
-        self.private_key = None
+        #self.private_key = None
         self.number = None
         self.is_valid = None
 

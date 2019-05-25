@@ -186,13 +186,14 @@ class NodeMigrator(NodeGenerator):
             own_key.trust_line_id = row[1]
             own_key.keys_set_sequence_number = row[2]
             own_key.public_key = row[3]
-            own_key.private_key = row[4]
+            #own_key.private_key = row[4]
             own_key.number = row[5]
             own_key.is_valid = row[6]
         if not self.ctx.in_memory:
             self.db_disconnect(False)
 
     def hash_audits(self):
+        self.own_keys.clear()
         self.run_and_wait()
         if not self.ctx.in_memory:
             self.db_connect(False)
@@ -276,6 +277,7 @@ class NodeMigrator(NodeGenerator):
         )
 
     def migrate(self):
+        self.trust_lines.clear()
         if not self.ctx.in_memory:
             self.db_connect(False)
         self.migrate_history()
@@ -286,8 +288,8 @@ class NodeMigrator(NodeGenerator):
         if self.ctx.in_memory:
             self.db_disconnect()
         print("Starting node: " + self.node_name)
-        self.ctx.runner.run("cd " + self.new_node_path + ";" + self.client_path + "")
-        if 0 != 0:
+        #self.ctx.runner.run("cd " + self.new_node_path + ";" + self.client_path + "")
+        if 0 == 0:
             with tempfile.TemporaryFile() as client_f:
                 client_proc = None
                 if self.ctx.verbose:
@@ -295,7 +297,6 @@ class NodeMigrator(NodeGenerator):
                         ["bash", "-c", "cd " + self.new_node_path + ";" + self.client_path + ""]
                     )
                 else:
-                    subprocess.run(["bash", "-c", "cd " + self.new_node_path + ";" + self.client_path + ""])
                     client_proc = subprocess.Popen(
                         ["bash", "-c", "cd " + self.new_node_path + ";" + self.client_path + ""],
                         stdout=client_f, stderr=client_f
