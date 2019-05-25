@@ -1,4 +1,5 @@
 import os, sys
+import json
 import getopt
 import shutil
 import time
@@ -87,6 +88,14 @@ class Main(context.Context):
 
         for node_migrator in self.nodes.values():
             node_migrator.migrate()
+
+        if self.migration_error_json is not None:
+            print("THERE ARE ERRORS!!")
+            print("Saving 'migration_error.json' file...")
+            print()
+            migration_error_file_path = os.path.join(new_infrastructure_path, "migration_error.json")
+            with open(migration_error_file_path, 'w') as cpm_file_out:
+                json.dump(self.migration_error_json, cpm_file_out, sort_keys=True, indent=4, ensure_ascii=False)
 
     @staticmethod
     def increment_node_address(node_address):

@@ -118,8 +118,14 @@ class NodeChannel:
             for trust_line in node_migrator.old_trust_lines:
                 contractor_tuple = NodeChannel.construct_contractor_tuple(
                     node_migrator.node_name, trust_line.contractor_id)
-                channels[contractor_tuple] = \
-                    NodeChannel(node_migrator, nodes[trust_line.contractor_id])
+                contractor_node = nodes.get(trust_line.contractor_id)
+                if contractor_node is None:
+                    node_migrator.ctx.append_migration_error({
+                        "error": "Channels: trust line. Unknown contractor_id",
+                        "node": node_migrator.node_name,
+                        "contractor_id": trust_line.contractor_id
+                    })
+                channels[contractor_tuple] = NodeChannel(node_migrator, contractor_node)
         return channels
 
     @staticmethod

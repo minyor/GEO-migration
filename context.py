@@ -14,6 +14,7 @@ class Context:
         self.address = None
         self.observers = "127.0.0.1:4000,127.0.0.1:4001,127.0.0.1:4002"
         self.in_memory = False
+        self.migration_error_json = None
 
         # Comparision operation specific:
         self.old_comparision_json = {}
@@ -35,6 +36,11 @@ class Context:
                     stdout=client_f, stderr=client_f
                 )
             client_proc.wait()
+
+    def append_migration_error(self, entry):
+        if self.migration_error_json is None:
+            self.migration_error_json = {}
+        self.migration_error_json[str(len(self.migration_error_json)+1)] = entry
 
     @staticmethod
     def terminate():
