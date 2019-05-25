@@ -24,7 +24,7 @@ class NodeGenerator:
             self.db_connect(False)
 
     def generate(self):
-        print("Generating node: " + self.node_name)
+        print("Generating node #"+str(len(self.ctx.nodes)+1)+": " + self.node_name)
         self.generate_conf_json()
         self.generate_tables()
 
