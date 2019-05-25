@@ -125,6 +125,7 @@ class NodeChannel:
                         "node": node_migrator.node_name,
                         "contractor_id": trust_line.contractor_id
                     })
+                    continue
                 channels[contractor_tuple] = NodeChannel(node_migrator, contractor_node)
         return channels
 
