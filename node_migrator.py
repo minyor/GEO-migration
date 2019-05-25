@@ -1,4 +1,4 @@
-import os
+import os, sys
 import sqlite3
 import json
 import subprocess
@@ -282,21 +282,24 @@ class NodeMigrator(NodeGenerator):
         self.db_disconnect()
         print()
 
-    def run_and_wait(self):
+    def run_and_wait(self, index=1):
         if self.ctx.in_memory:
             self.db_disconnect()
         print("Starting node: " + self.node_name)
-        with tempfile.TemporaryFile() as client_f:
-            client_proc = None
-            if self.ctx.verbose:
-                client_proc = subprocess.Popen(
-                    ["bash", "-c", "cd " + self.new_node_path + ";" + self.client_path + ""]
-                )
-            else:
-                client_proc = subprocess.Popen(
-                    ["bash", "-c", "cd " + self.new_node_path + ";" + self.client_path + ""],
-                    stdout=client_f, stderr=client_f
-                )
-            client_proc.wait()
+        self.ctx.runner.run("cd " + self.new_node_path + ";" + self.client_path + "")
+        if 0 != 0:
+            with tempfile.TemporaryFile() as client_f:
+                client_proc = None
+                if self.ctx.verbose:
+                    client_proc = subprocess.Popen(
+                        ["bash", "-c", "cd " + self.new_node_path + ";" + self.client_path + ""]
+                    )
+                else:
+                    subprocess.run(["bash", "-c", "cd " + self.new_node_path + ";" + self.client_path + ""])
+                    client_proc = subprocess.Popen(
+                        ["bash", "-c", "cd " + self.new_node_path + ";" + self.client_path + ""],
+                        stdout=client_f, stderr=client_f
+                    )
+                client_proc.wait()
         if self.ctx.in_memory:
             self.db_connect()

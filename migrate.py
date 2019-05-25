@@ -6,6 +6,7 @@ import time
 import context
 
 from settings import migration_conf
+from shell_runner import ShellRunner
 from node_migrator import NodeMigrator
 from node_channel import NodeChannel
 
@@ -40,6 +41,9 @@ class Main(context.Context):
         new_infrastructure_path = migration_conf.get("new_infrastructure_path")
         mod_network_client_path = migration_conf.get("mod_network_client_path")
         shutil.rmtree(new_infrastructure_path, ignore_errors=True)
+
+        ShellRunner.clean()
+        self.runner = ShellRunner(new_infrastructure_path)
 
         print()
         new_node_address = self.address
@@ -95,7 +99,7 @@ class Main(context.Context):
             print()
             migration_error_file_path = os.path.join(new_infrastructure_path, "migration_error.json")
             with open(migration_error_file_path, 'w') as cpm_file_out:
-                json.dump(self.migration_error_json, cpm_file_out, sort_keys=True, indent=4, ensure_ascii=False)
+                json.dump(elf.migration_error_json, cpm_file_out, sort_keys=True, indent=4, ensure_ascii=False)
 
     @staticmethod
     def increment_node_address(node_address):

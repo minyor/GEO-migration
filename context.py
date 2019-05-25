@@ -9,6 +9,7 @@ class Context:
         self.verbose = False
         self.nodes = dict()
         self.nodes_by_address = dict()
+        self.runner = None
 
         # Migration operation specific:
         self.address = None
@@ -36,6 +37,7 @@ class Context:
                     stdout=client_f, stderr=client_f
                 )
             client_proc.wait()
+            client_proc.kill()
 
     def append_migration_error(self, entry):
         if self.migration_error_json is None:
@@ -45,7 +47,8 @@ class Context:
     @staticmethod
     def terminate():
         with tempfile.TemporaryFile() as client_f:
-            subprocess.Popen(['kill', '-9', str(os.getpid())], stdout=client_f, stderr=client_f)
+            client_proc = subprocess.Popen(['kill', '-9', str(os.getpid())], stdout=client_f, stderr=client_f)
+            client_proc.kill()
 
 
 class Channel:

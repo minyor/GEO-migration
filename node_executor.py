@@ -69,6 +69,7 @@ class NodeExecutor(NodeGenerator):
                     stdout=client_f, stderr=client_f
                 )
             client_proc.wait()
+            client_proc.kill()
 
     def run_command(self, fifo, line):
         line = line.replace("\\t", '\t').replace("\\n", "\n")
@@ -98,7 +99,9 @@ class NodeExecutor(NodeGenerator):
     def clean(self, also_clients=True):
         if also_clients:
             with tempfile.TemporaryFile() as client_f:
-                subprocess.Popen(['killall', '-q', self.new_client_path], stdout=client_f, stderr=client_f)
-                subprocess.Popen(['killall', '-q', self.old_client_path], stdout=client_f, stderr=client_f)
+                client_proc = subprocess.Popen(['killall', '-q', self.new_client_path], stdout=client_f, stderr=client_f)
+                client_proc.kill()
+                client_proc = subprocess.Popen(['killall', '-q', self.old_client_path], stdout=client_f, stderr=client_f)
+                client_proc.kill()
         self.result_fifo_handler.close()
         self.result_fifo_handler = None
