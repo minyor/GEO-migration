@@ -168,6 +168,7 @@ class NodeMigrator(NodeGenerator):
             history.command_uuid = row[6]
 
     def retrieve_own_keys(self):
+        print("Starting node [own_keys]: " + self.node_name)
         self.run_and_wait()
 
     def load_own_keys(self, trust_line_id):
@@ -190,6 +191,7 @@ class NodeMigrator(NodeGenerator):
         return own_keys
 
     def hash_audits(self):
+        print("Starting node [audit]: " + self.node_name)
         self.run_and_wait()
         if not self.ctx.in_memory:
             self.db_connect(False)
@@ -283,7 +285,6 @@ class NodeMigrator(NodeGenerator):
     def run_and_wait(self, index=1):
         if self.ctx.in_memory:
             self.db_disconnect()
-        print("Starting node: " + self.node_name)
         #self.ctx.runner.run("cd " + self.new_node_path + ";" + self.client_path + "")
         if 0 == 0:
             with tempfile.TemporaryFile() as client_f:

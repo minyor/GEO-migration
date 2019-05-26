@@ -218,6 +218,7 @@ class NodeComparator(NodeExecutor):
             outgoing_trust_amount = float(result_tl[trust_line_array_shift + 6])
             balance = float(result_tl[trust_line_array_shift + 7])
             address = addresses[addresses.find(' ')+1:]
+            print("address='"+address+"'")
             node = self.ctx.nodes_by_address.get(address)
             if node is None:
                 assert False, "Can't find node by address " + address

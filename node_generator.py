@@ -12,6 +12,7 @@ class NodeGenerator:
         self.old_node_path = old_node_path
         self.new_node_path = new_node_path
         self.new_node_address = new_node_address
+        self.old_node_address = None
 
         self.node_name = "none"
         self.read_conf_json()
@@ -38,9 +39,10 @@ class NodeGenerator:
             data = json.load(conf_file)
             node = data["node"]
             self.node_name = node.get("uuid", self.node_name)
+            network = data["network"]
+            self.old_node_address = network.get("interface", "127.0.0.1") + ":" + str(network.get("port", 2033))
             if self.new_node_address is None:
-                network = data["network"]
-                self.new_node_address = network.get("interface", "127.0.0.1") + ":" + str(network.get("port", 2033))
+                self.new_node_address = self.old_node_address
 
     def generate_conf_json(self):
         data = dict()

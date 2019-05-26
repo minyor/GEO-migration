@@ -25,6 +25,13 @@ class NodeExecutor(NodeGenerator):
         self.command_result = None
 
         self.update_conf_json()
+        self.read_new_conf_json()
+
+    def read_new_conf_json(self):
+        with open(os.path.join(self.new_node_path, "conf.json")) as conf_file:
+            data = json.load(conf_file)
+            addresses = data["addresses"]
+            self.new_node_address = addresses[0].get("address", self.new_node_address)
 
     def update_conf_json(self):
         with open(os.path.join(self.old_node_path, "conf.json")) as conf_file:
@@ -69,7 +76,6 @@ class NodeExecutor(NodeGenerator):
                     stdout=client_f, stderr=client_f
                 )
             client_proc.wait()
-            client_proc.kill()
 
     def run_command(self, fifo, line):
         line = line.replace("\\t", '\t').replace("\\n", "\n")
@@ -100,8 +106,6 @@ class NodeExecutor(NodeGenerator):
         if also_clients:
             with tempfile.TemporaryFile() as client_f:
                 client_proc = subprocess.Popen(['killall', '-q', self.new_client_path], stdout=client_f, stderr=client_f)
-                client_proc.kill()
                 client_proc = subprocess.Popen(['killall', '-q', self.old_client_path], stdout=client_f, stderr=client_f)
-                client_proc.kill()
         self.result_fifo_handler.close()
         self.result_fifo_handler = None
