@@ -78,8 +78,8 @@ class Main(context.Context):
 
         self.save()
 
-        exit(0)
-        #resume()
+        #exit(0)
+        self.resume()
 
     def resume(self):
         for channel in self.channels.values():
