@@ -51,10 +51,13 @@ class Context:
         binary_file.close()
 
     @staticmethod
-    def load(self):
-        binary_file = open('./pickled_migration.bin', mode='rb')
-        pickle.load(binary_file)
-        binary_file.close()
+    def load():
+        if os.path.isfile('./pickled_migration.bin'):
+            binary_file = open('./pickled_migration.bin', mode='rb')
+            obl = pickle.load(binary_file)
+            binary_file.close()
+            return obl
+        return None
 
     @staticmethod
     def terminate():

@@ -35,23 +35,24 @@ class Main(context.Context):
                 assert False, "unhandled option"
         self.observers = self.observers.split(',')
 
+        self.old_infrastructure_path = migration_conf.get("old_infrastructure_path")
+        self.new_infrastructure_path = migration_conf.get("new_infrastructure_path")
+        self.mod_network_client_path = migration_conf.get("mod_network_client_path")
+
     def migrate(self):
-        old_infrastructure_path = migration_conf.get("old_infrastructure_path")
-        new_infrastructure_path = migration_conf.get("new_infrastructure_path")
-        mod_network_client_path = migration_conf.get("mod_network_client_path")
-        shutil.rmtree(new_infrastructure_path, ignore_errors=True)
+        shutil.rmtree(self.new_infrastructure_path, ignore_errors=True)
 
         print()
         new_node_address = self.address
-        nodes = os.listdir(old_infrastructure_path)
+        nodes = os.listdir(self.old_infrastructure_path)
         for path in nodes:
-            old_node_path = os.path.join(old_infrastructure_path, path)
-            new_node_path = os.path.join(new_infrastructure_path, path)
+            old_node_path = os.path.join(self.old_infrastructure_path, path)
+            new_node_path = os.path.join(self.new_infrastructure_path, path)
             if not os.path.isdir(old_node_path):
                 continue
             if os.path.isdir(new_node_path):
                 continue
-            node_migrator = NodeMigrator(self, old_node_path, new_node_path, new_node_address, mod_network_client_path)
+            node_migrator = NodeMigrator(self, old_node_path, new_node_path, new_node_address, self.mod_network_client_path)
             if not self.in_memory:
                 node_migrator.db_connect(False)
             node_migrator.generate()
@@ -75,9 +76,13 @@ class Main(context.Context):
             node_migrator.retrieve_own_keys()
             print()
 
-        #self.save()
+        self.save()
 
-        for channel in channels.values():
+        exit(0)
+        #resume()
+
+    def resume(self):
+        for channel in self.channels.values():
             channel.generate_contractor_keys()
             print()
 
@@ -85,7 +90,7 @@ class Main(context.Context):
             node_migrator.hash_audits()
             print()
 
-        for channel in channels.values():
+        for channel in self.channels.values():
             channel.generate_audit_crypto()
             print()
 
@@ -96,7 +101,7 @@ class Main(context.Context):
             print("THERE ARE ERRORS!!")
             print("Saving 'migration_error.json' file...")
             print()
-            migration_error_file_path = os.path.join(new_infrastructure_path, "migration_error.json")
+            migration_error_file_path = os.path.join(self.new_infrastructure_path, "migration_error.json")
             with open(migration_error_file_path, 'w') as cpm_file_out:
                 json.dump(self.migration_error_json, cpm_file_out, sort_keys=True, indent=4, ensure_ascii=False)
 
@@ -120,7 +125,12 @@ class Main(context.Context):
 
 if __name__ == "__main__":
     start_time = time.time()
-    Main().migrate()
+    main = Main.load()
+    if main is None:
+        Main().migrate()
+    else:
+        print("Migration is Resumed!!")
+        main.resume()
     hours, rem = divmod(time.time() - start_time, 3600)
     minutes, seconds = divmod(rem, 60)
     print("Finished in {:0>2}:{:0>2}:{:05.2f}".format(int(hours), int(minutes), seconds))
