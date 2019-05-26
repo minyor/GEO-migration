@@ -48,82 +48,50 @@ class NodeChannel:
         print("Generating contractor keys between nodes: " +
               self.node1.node_name + ", " + self.node2.node_name)
 
-        print("generate_contractor_keys DEBUG 01")
         if not self.node1.ctx.in_memory:
             self.node1.db_connect(False)
-        print("generate_contractor_keys DEBUG 02")
         if not self.node2.ctx.in_memory:
             self.node2.db_connect(False)
 
-        print("generate_contractor_keys DEBUG 03")
-        self.node1.load_own_keys()
-        print("generate_contractor_keys DEBUG 04")
-        self.node2.load_own_keys()
-
-        print("generate_contractor_keys DEBUG 05")
         for trust_line1 in self.node1.trust_lines.values():
-            print("generate_contractor_keys DEBUG 051")
             if trust_line1.contractor_id != self.id_on_contractor_side2:
                 continue
-            print("generate_contractor_keys DEBUG 052")
             channel1 = self.node1.channels.get(trust_line1.contractor_id, None)
-            print("generate_contractor_keys DEBUG 053")
             channel2 = self.node2.channels.get(channel1.id_on_contractor_side, None)
 
-            print("generate_contractor_keys DEBUG 054")
+            own_keys1 = self.node1.load_own_keys(trust_line1.id)
             for trust_line2 in self.node2.trust_lines.values():
-                print("generate_contractor_keys DEBUG 0541")
                 if trust_line2.contractor_id != self.id_on_contractor_side1:
                     continue
-                print("generate_contractor_keys DEBUG 0542")
                 if trust_line2.contractor_id != channel2.id or \
                         trust_line1.equivalent != trust_line2.equivalent:
                     continue
 
-                print("generate_contractor_keys DEBUG 0543")
                 print(
                     "\tGenerating contractor keys for trust lines" +
                     "(" + str(trust_line1.id) + ":" + str(trust_line2.id) + ")"
                 )
-                print("generate_contractor_keys DEBUG 0544")
-                for own_key1 in self.node1.own_keys:
-                    print("generate_contractor_keys DEBUG 05441")
+                own_keys2 = self.node2.load_own_keys(trust_line2.id)
+                for own_key1 in own_keys1:
                     if own_key1.trust_line_id != trust_line1.id:
                         continue
-                    print("generate_contractor_keys DEBUG 05442")
-                    for own_key2 in self.node2.own_keys:
-                        print("generate_contractor_keys DEBUG 054421")
+                    for own_key2 in own_keys2:
                         if own_key2.trust_line_id != trust_line2.id or \
                                 own_key1.number != own_key2.number:
                             continue
-                        print("generate_contractor_keys DEBUG 054422")
                         self.node1.add_contractor_key(
                             own_key1,
                             own_key2
                         )
-                        print("generate_contractor_keys DEBUG 054423")
                         self.node2.add_contractor_key(
                             own_key2,
                             own_key1
                         )
-                        print("generate_contractor_keys DEBUG 054424")
 
-        print("generate_contractor_keys DEBUG 06")
-        self.node1.own_keys.clear()
-        print("generate_contractor_keys DEBUG 07")
-        self.node1.own_keys = None
-        print("generate_contractor_keys DEBUG 08")
-        self.node2.own_keys.clear()
-        print("generate_contractor_keys DEBUG 09")
-        self.node2.own_keys = None
-
-        print("generate_contractor_keys DEBUG 10")
         if not self.node1.ctx.in_memory:
             self.node1.db_disconnect(False)
-        print("generate_contractor_keys DEBUG 11")
         if not self.node2.ctx.in_memory:
             self.node2.db_disconnect(False)
-        print("generate_contractor_keys DEBUG 12")
 
     def generate_audit_crypto(self):
         print("Generating audit hashes and signatures between nodes: " +

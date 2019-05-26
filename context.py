@@ -46,9 +46,10 @@ class Context:
         self.migration_error_json[str(len(self.migration_error_json)+1)] = entry
 
     def save(self):
-        binary_file = open('./pickled_migration.bin', mode='wb')
-        pickle.dump(self, binary_file)
-        binary_file.close()
+        pass
+        #binary_file = open('./pickled_migration.bin', mode='wb')
+        #pickle.dump(self, binary_file)
+        #binary_file.close()
 
     @staticmethod
     def load():
