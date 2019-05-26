@@ -9,7 +9,6 @@ class Context:
         self.verbose = False
         self.nodes = dict()
         self.nodes_by_address = dict()
-        self.runner = None
 
         # Migration operation specific:
         self.address = None
@@ -81,7 +80,7 @@ class OwnKey:
         self.trust_line_id = None
         self.keys_set_sequence_number = None
         self.public_key = None
-        #self.private_key = None
+        self.private_key = None
         self.number = None
         self.is_valid = None
 

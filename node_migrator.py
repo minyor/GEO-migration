@@ -19,7 +19,7 @@ class NodeMigrator(NodeGenerator):
 
         self.channels = dict()
         self.trust_lines = dict()
-        self.own_keys = []
+        self.own_keys = None
 
     def add_channel(self, pk, sk, ok, id_on_contractor_side, contractor_address):
         if not self.ctx.in_memory:
@@ -97,8 +97,6 @@ class NodeMigrator(NodeGenerator):
             self.db_disconnect(False)
 
     def add_contractor_key(self, own_key1, own_key2):
-        if not self.ctx.in_memory:
-            self.db_connect(False)
         self.new_storage_cur.execute(
             "insert into contractor_keys ("
                 "'hash', 'trust_line_id', 'keys_set_sequence_number', "
@@ -114,8 +112,6 @@ class NodeMigrator(NodeGenerator):
                 own_key1.is_valid
             )
         )
-        if not self.ctx.in_memory:
-            self.db_disconnect(False)
 
     def update_audit_crypto(self, trust_line_id, contractor_key_hash, contractor_signature):
         if not self.ctx.in_memory:
@@ -173,12 +169,15 @@ class NodeMigrator(NodeGenerator):
 
     def retrieve_own_keys(self):
         self.run_and_wait()
+
+    def load_own_keys(self):
         if not self.ctx.in_memory:
             self.db_connect(False)
         self.new_storage_cur.execute(
             "SELECT hash, trust_line_id, keys_set_sequence_number, public_key, private_key, number, is_valid "
             "FROM own_keys;")
         rows = self.new_storage_cur.fetchall()
+        self.own_keys = []
         for row in rows:
             own_key = context.OwnKey()
             self.own_keys.append(own_key)
@@ -186,14 +185,11 @@ class NodeMigrator(NodeGenerator):
             own_key.trust_line_id = row[1]
             own_key.keys_set_sequence_number = row[2]
             own_key.public_key = row[3]
-            #own_key.private_key = row[4]
+            own_key.private_key = row[4]
             own_key.number = row[5]
             own_key.is_valid = row[6]
-        if not self.ctx.in_memory:
-            self.db_disconnect(False)
 
     def hash_audits(self):
-        self.own_keys.clear()
         self.run_and_wait()
         if not self.ctx.in_memory:
             self.db_connect(False)

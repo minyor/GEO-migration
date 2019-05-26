@@ -6,7 +6,6 @@ import time
 import context
 
 from settings import migration_conf
-from shell_runner import ShellRunner
 from node_migrator import NodeMigrator
 from node_channel import NodeChannel
 
@@ -41,9 +40,6 @@ class Main(context.Context):
         new_infrastructure_path = migration_conf.get("new_infrastructure_path")
         mod_network_client_path = migration_conf.get("mod_network_client_path")
         shutil.rmtree(new_infrastructure_path, ignore_errors=True)
-
-        #ShellRunner.clean()
-        #self.runner = ShellRunner(new_infrastructure_path)
 
         print()
         new_node_address = self.address

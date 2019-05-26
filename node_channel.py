@@ -48,6 +48,14 @@ class NodeChannel:
         print("Generating contractor keys between nodes: " +
               self.node1.node_name + ", " + self.node2.node_name)
 
+        if not self.node1.ctx.in_memory:
+            self.node1.db_connect(False)
+        if not self.node2.ctx.in_memory:
+            self.node2.db_connect(False)
+
+        self.node1.load_own_keys()
+        self.node2.load_own_keys()
+
         for trust_line1 in self.node1.trust_lines.values():
             if trust_line1.contractor_id != self.id_on_contractor_side2:
                 continue
@@ -80,6 +88,16 @@ class NodeChannel:
                             own_key2,
                             own_key1
                         )
+
+        self.node1.own_keys.clear()
+        self.node1.own_keys = None
+        self.node2.own_keys.clear()
+        self.node2.own_keys = None
+
+        if not self.node1.ctx.in_memory:
+            self.node1.db_disconnect(False)
+        if not self.node2.ctx.in_memory:
+            self.node2.db_disconnect(False)
 
     def generate_audit_crypto(self):
         print("Generating audit hashes and signatures between nodes: " +
