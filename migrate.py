@@ -62,6 +62,7 @@ class Main(context.Context):
             new_node_address = self.increment_node_address(new_node_address)
 
         channels = NodeChannel.construct_channels(self.nodes)
+        self.channels = channels
 
         print()
         for channel in channels.values():
@@ -73,6 +74,8 @@ class Main(context.Context):
         for node_migrator in self.nodes.values():
             node_migrator.retrieve_own_keys()
             print()
+
+        #self.save()
 
         for channel in channels.values():
             channel.generate_contractor_keys()
@@ -95,7 +98,7 @@ class Main(context.Context):
             print()
             migration_error_file_path = os.path.join(new_infrastructure_path, "migration_error.json")
             with open(migration_error_file_path, 'w') as cpm_file_out:
-                json.dump(elf.migration_error_json, cpm_file_out, sort_keys=True, indent=4, ensure_ascii=False)
+                json.dump(self.migration_error_json, cpm_file_out, sort_keys=True, indent=4, ensure_ascii=False)
 
     @staticmethod
     def increment_node_address(node_address):

@@ -97,6 +97,7 @@ class NodeMigrator(NodeGenerator):
             self.db_disconnect(False)
 
     def add_contractor_key(self, own_key1, own_key2):
+        print("\tadd_contractor_key DEBUG 01")
         self.new_storage_cur.execute(
             "insert into contractor_keys ("
                 "'hash', 'trust_line_id', 'keys_set_sequence_number', "
@@ -112,6 +113,7 @@ class NodeMigrator(NodeGenerator):
                 own_key1.is_valid
             )
         )
+        print("\tadd_contractor_key DEBUG 02")
 
     def update_audit_crypto(self, trust_line_id, contractor_key_hash, contractor_signature):
         if not self.ctx.in_memory:
@@ -171,23 +173,39 @@ class NodeMigrator(NodeGenerator):
         self.run_and_wait()
 
     def load_own_keys(self):
+        print("\tload_own_keys DEBUG 01")
         if not self.ctx.in_memory:
             self.db_connect(False)
+        print("\tload_own_keys DEBUG 02")
         self.new_storage_cur.execute(
             "SELECT hash, trust_line_id, keys_set_sequence_number, public_key, private_key, number, is_valid "
             "FROM own_keys;")
+        print("\tload_own_keys DEBUG 03")
         rows = self.new_storage_cur.fetchall()
+        print("\tload_own_keys DEBUG 04")
         self.own_keys = []
+        print("\tload_own_keys DEBUG 05")
         for row in rows:
+            print("\tload_own_keys DEBUG 051")
             own_key = context.OwnKey()
+            print("\tload_own_keys DEBUG 052")
             self.own_keys.append(own_key)
+            print("\tload_own_keys DEBUG 053")
             own_key.hash = row[0]
+            print("\tload_own_keys DEBUG 054")
             own_key.trust_line_id = row[1]
+            print("\tload_own_keys DEBUG 055")
             own_key.keys_set_sequence_number = row[2]
+            print("\tload_own_keys DEBUG 056")
             own_key.public_key = row[3]
+            print("\tload_own_keys DEBUG 057")
             own_key.private_key = row[4]
+            print("\tload_own_keys DEBUG 058")
             own_key.number = row[5]
+            print("\tload_own_keys DEBUG 059")
             own_key.is_valid = row[6]
+            print("\tload_own_keys DEBUG 05A")
+        print("\tload_own_keys DEBUG 06")
 
     def hash_audits(self):
         self.run_and_wait()

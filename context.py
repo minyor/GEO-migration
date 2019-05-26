@@ -1,6 +1,7 @@
 import os
 import subprocess
 import tempfile
+import pickle
 
 
 class Context:
@@ -15,6 +16,7 @@ class Context:
         self.observers = "127.0.0.1:4000,127.0.0.1:4001,127.0.0.1:4002"
         self.in_memory = False
         self.migration_error_json = None
+        self.channels = None
 
         # Comparision operation specific:
         self.old_comparision_json = {}
@@ -42,6 +44,17 @@ class Context:
         if self.migration_error_json is None:
             self.migration_error_json = {}
         self.migration_error_json[str(len(self.migration_error_json)+1)] = entry
+
+    def save(self):
+        binary_file = open('./pickled_migration.bin', mode='wb')
+        pickle.dump(self, binary_file)
+        binary_file.close()
+
+    @staticmethod
+    def load(self):
+        binary_file = open('./pickled_migration.bin', mode='rb')
+        pickle.load(binary_file)
+        binary_file.close()
 
     @staticmethod
     def terminate():
