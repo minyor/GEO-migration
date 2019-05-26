@@ -19,7 +19,7 @@ class NodeExecutor(NodeGenerator):
         self.new_result_fifo_path = os.path.join(self.new_node_path, "fifo", "results.fifo")
         self.old_commands_fifo_path = os.path.join(self.old_node_path, "fifo", "commands.fifo")
         self.new_commands_fifo_path = os.path.join(self.new_node_path, "fifo", "commands.fifo")
-        self.db_disconnect()
+        self.db_disconnect(False)
 
         self.result_fifo_handler = None
         self.command_result = None

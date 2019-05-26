@@ -52,6 +52,7 @@ class Main(context.Context):
                 continue
             if not os.path.isdir(new_node_path):
                 assert False, "Migrated node " + path + " is not found"
+            print("Loading node #"+str(len(self.nodes)+1)+": " + path)
             node_comparator = NodeComparator(
                 self, old_node_path, new_node_path,
                 old_network_client_path, new_network_client_path,
