@@ -54,7 +54,7 @@ class Main(context.Context):
                 assert False, "Migrated node " + path + " is not found"
             print("Loading node #"+str(len(self.nodes)+1)+": " + path)
             node_comparator = NodeComparator(
-                self, old_node_path, new_node_path,
+                self, path, old_node_path, new_node_path,
                 old_network_client_path, new_network_client_path,
                 old_uuid_2_address_path)
             self.nodes[node_comparator.node_name] = node_comparator

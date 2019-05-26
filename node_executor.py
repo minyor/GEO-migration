@@ -3,6 +3,7 @@ import json
 import subprocess
 import tempfile
 import time
+from random import randint
 
 import context
 
@@ -10,8 +11,8 @@ from node_generator import NodeGenerator
 
 
 class NodeExecutor(NodeGenerator):
-    def __init__(self, ctx, old_node_path, new_node_path, old_client_path, new_client_path, old_uuid_2_address_path):
-        super().__init__(ctx, old_node_path, new_node_path, None)
+    def __init__(self, ctx, node_name, old_node_path, new_node_path, old_client_path, new_client_path, old_uuid_2_address_path):
+        super().__init__(ctx, node_name, old_node_path, new_node_path, None, False)
         self.old_client_path = old_client_path
         self.new_client_path = new_client_path
         self.old_uuid_2_address_path = old_uuid_2_address_path
@@ -34,10 +35,29 @@ class NodeExecutor(NodeGenerator):
             self.new_node_address = addresses[0].get("address", self.new_node_address)
 
     def update_conf_json(self):
-        with open(os.path.join(self.old_node_path, "conf.json")) as conf_file:
-            data = json.load(conf_file)
-            uuid2address = data["uuid2address"]
-            uuid2address["host"] = "127.0.0.1"
+        try:
+            with open(os.path.join(self.old_node_path, "conf.json")) as conf_file:
+                data = json.load(conf_file)
+                uuid2address = data["uuid2address"]
+                uuid2address["host"] = "127.0.0.1"
+                uuid2address["port"] = 1500
+                with open(os.path.join(self.old_node_path, "conf.json"), 'w') as conf_file_out:
+                    json.dump(data, conf_file_out, sort_keys=True, indent=4, ensure_ascii=False)
+        except:
+            data = {
+                "gateway": [],
+                "network": {
+                    "interface": "127.0.0.2",
+                    "port": 30000 + randint(0, 30000-1)
+                },
+                "node": {
+                    "uuid": self.node_name
+                },
+                "uuid2address": {
+                    "host": "127.0.0.1",
+                    "port": 1500
+                }
+            }
             with open(os.path.join(self.old_node_path, "conf.json"), 'w') as conf_file_out:
                 json.dump(data, conf_file_out, sort_keys=True, indent=4, ensure_ascii=False)
 

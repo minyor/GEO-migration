@@ -21,8 +21,8 @@ class NodeValidator(NodeExecutor):
             self.outgoing_trust_amount = None
             self.balance = None
 
-    def __init__(self, ctx, old_node_path, new_node_path, old_client_path, new_client_path, old_uuid_2_address_path):
-        super().__init__(ctx, old_node_path, new_node_path, old_client_path, new_client_path, old_uuid_2_address_path)
+    def __init__(self, ctx, node_name, old_node_path, new_node_path, old_client_path, new_client_path, old_uuid_2_address_path):
+        super().__init__(ctx, node_name, old_node_path, new_node_path, old_client_path, new_client_path, old_uuid_2_address_path)
 
         self.trust_lines = None
         self.checked = False

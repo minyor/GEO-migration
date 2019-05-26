@@ -9,8 +9,8 @@ from node_executor import NodeExecutor
 
 
 class NodeComparator(NodeExecutor):
-    def __init__(self, ctx, old_node_path, new_node_path, old_client_path, new_client_path, old_uuid_2_address_path):
-        super().__init__(ctx, old_node_path, new_node_path, old_client_path, new_client_path, old_uuid_2_address_path)
+    def __init__(self, ctx, node_name, old_node_path, new_node_path, old_client_path, new_client_path, old_uuid_2_address_path):
+        super().__init__(ctx, node_name, old_node_path, new_node_path, old_client_path, new_client_path, old_uuid_2_address_path)
 
     def compare(self):
         print()
@@ -218,7 +218,6 @@ class NodeComparator(NodeExecutor):
             outgoing_trust_amount = float(result_tl[trust_line_array_shift + 6])
             balance = float(result_tl[trust_line_array_shift + 7])
             address = addresses[addresses.find(' ')+1:]
-            print("address='"+address+"'")
             node = self.ctx.nodes_by_address.get(address)
             if node is None:
                 assert False, "Can't find node by address " + address

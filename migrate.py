@@ -52,7 +52,8 @@ class Main(context.Context):
                 continue
             if os.path.isdir(new_node_path):
                 continue
-            node_migrator = NodeMigrator(self, old_node_path, new_node_path, new_node_address, self.mod_network_client_path)
+            node_migrator = NodeMigrator(self, path, old_node_path,
+                                         new_node_path, new_node_address, self.mod_network_client_path)
             if not self.in_memory:
                 node_migrator.db_connect(False)
             node_migrator.generate()

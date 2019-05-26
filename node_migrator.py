@@ -9,8 +9,8 @@ from node_generator import NodeGenerator
 
 
 class NodeMigrator(NodeGenerator):
-    def __init__(self, ctx, old_node_path, new_node_path, new_node_address, client_path):
-        super().__init__(ctx, old_node_path, new_node_path, new_node_address)
+    def __init__(self, ctx, node_name, old_node_path, new_node_path, new_node_address, client_path):
+        super().__init__(ctx, node_name, old_node_path, new_node_path, new_node_address)
         self.client_path = client_path
 
         self.channel_idx = 0

@@ -7,15 +7,18 @@ import context
 
 
 class NodeGenerator:
-    def __init__(self, ctx, old_node_path, new_node_path, new_node_address):
+    def __init__(self, ctx, node_name, old_node_path, new_node_path, new_node_address, assertions=True):
         self.ctx = ctx
         self.old_node_path = old_node_path
         self.new_node_path = new_node_path
         self.new_node_address = new_node_address
         self.old_node_address = None
 
-        self.node_name = "none"
+        self.node_name = node_name
         self.read_conf_json()
+
+        if assertions and self.new_node_address is None:
+            assert False, "Cannot determine address of node " + self.node_name
 
         os.makedirs(os.path.join(self.new_node_path, "io"), exist_ok=True)
 
@@ -35,14 +38,20 @@ class NodeGenerator:
         )
 
     def read_conf_json(self):
-        with open(os.path.join(self.old_node_path, "conf.json")) as conf_file:
-            data = json.load(conf_file)
-            node = data["node"]
-            self.node_name = node.get("uuid", self.node_name)
-            network = data["network"]
-            self.old_node_address = network.get("interface", "127.0.0.1") + ":" + str(network.get("port", 2033))
-            if self.new_node_address is None:
-                self.new_node_address = self.old_node_address
+        try:
+            with open(os.path.join(self.old_node_path, "conf.json")) as conf_file:
+                data = json.load(conf_file)
+                node = data["node"]
+                self.node_name = node.get("uuid", self.node_name)
+                network = data["network"]
+                self.old_node_address = network.get("interface", "127.0.0.1") + ":" + str(network.get("port", 2033))
+                if self.new_node_address is None:
+                    self.new_node_address = self.old_node_address
+        except:
+            self.ctx.append_migration_error({
+                "error": "Cannot parse 'conf.json' file",
+                "node": self.node_name,
+            })
 
     def generate_conf_json(self):
         data = dict()
