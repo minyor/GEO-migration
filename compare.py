@@ -72,7 +72,13 @@ class Main(context.Context):
         for node_comparator in self.nodes_array:
             if self.nodes_count_processed >= self.nodes_count_max:
                 break
-            node_comparator.compare()
+            try:
+                node_comparator.compare()
+                self.save_comparision_files()
+            except:
+                print("Failed to compare node #" + str(node_comparator.node_idx + 1) + ": " + node_comparator.node_name)
+                self.load_comparision_files()
+            self.nodes_count_processed += 1
 
         print()
         print("Calculating migration outcome...")

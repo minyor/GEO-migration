@@ -28,8 +28,6 @@ class NodeComparator(NodeExecutor):
 
         with open(compared_file_path, 'w') as cpm_file_out:
             json.dump({}, cpm_file_out, sort_keys=True, indent=4, ensure_ascii=False)
-        self.ctx.nodes_count_processed += 1
-        self.ctx.save_comparision_files()
 
     def retrieve_data_from_old_node(self):
         print("Process old node...")

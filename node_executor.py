@@ -101,27 +101,22 @@ class NodeExecutor(NodeGenerator):
     def run_command(self, fifo, line):
         line = line.replace("\\t", '\t').replace("\\n", "\n")
         line = line.encode()
-        while True:
-            try:
-                fifo_write = open(fifo, 'wb')
-                fifo_write.write(line)
-                fifo_write.flush()
-                fifo_write.close()
 
-                try_count = 0
-                max_count = 10 * 60
-                while self.command_result is None and try_count <= max_count:
-                    time.sleep(0.1)
-                    try_count += 1
-                if try_count > max_count:
-                    assert False, "No response from node " + self.node_name
-                result = self.command_result
-                self.command_result = None
-                return result
-            except:
-                #print("Failed to run command, retrying...")
-                time.sleep(0.1)
-                continue
+        fifo_write = open(fifo, 'wb')
+        fifo_write.write(line)
+        fifo_write.flush()
+        fifo_write.close()
+
+        try_count = 0
+        max_count = 10 * 60
+        while self.command_result is None and try_count <= max_count:
+            time.sleep(0.1)
+            try_count += 1
+        if try_count > max_count:
+            assert False, "No response from node " + self.node_name
+        result = self.command_result
+        self.command_result = None
+        return result
 
     def clean(self, also_clients=True):
         if also_clients:
