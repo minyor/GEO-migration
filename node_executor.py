@@ -89,14 +89,17 @@ class NodeExecutor(NodeGenerator):
             client_proc = None
             if self.ctx.verbose:
                 client_proc = subprocess.Popen(
-                    ["bash", "-c", "cd " + node_path + ";" + client_path + ""]
+                    client_path,
+                    cwd=node_path
                 )
+                return client_proc
             else:
                 client_proc = subprocess.Popen(
-                    ["bash", "-c", "cd " + node_path + ";" + client_path + ""],
+                    client_path,
+                    cwd=node_path,
                     stdout=client_f, stderr=client_f
                 )
-            client_proc.wait()
+                return client_proc
 
     def run_command(self, fifo, line):
         line = line.replace("\\t", '\t').replace("\\n", "\n")
@@ -119,9 +122,9 @@ class NodeExecutor(NodeGenerator):
         return result
 
     def clean(self, also_clients=True):
-        if also_clients:
-            with tempfile.TemporaryFile() as client_f:
-                client_proc = subprocess.Popen(['killall', '-q', self.new_client_path], stdout=client_f, stderr=client_f)
-                client_proc = subprocess.Popen(['killall', '-q', self.old_client_path], stdout=client_f, stderr=client_f)
+        #if also_clients:
+        #    with tempfile.TemporaryFile() as client_f:
+        #        client_proc = subprocess.Popen(['killall', '-q', self.new_client_path], stdout=client_f, stderr=client_f)
+        #        client_proc = subprocess.Popen(['killall', '-q', self.old_client_path], stdout=client_f, stderr=client_f)
         self.result_fifo_handler.close()
         self.result_fifo_handler = None

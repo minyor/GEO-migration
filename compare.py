@@ -12,10 +12,12 @@ from node_comparator import NodeComparator
 
 
 class Main(context.Context):
-    def __init__(self):
+    def __init__(self, custom_args=None, files_prefix=""):
         super().__init__()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "hm:v", ["help"])
+            if custom_args is None:
+                custom_args = sys.argv[1:]
+            opts, args = getopt.getopt(custom_args, "hm:t:v", ["help"])
         except getopt.GetoptError as err:
             print(str(err))
             self.usage()
@@ -28,6 +30,8 @@ class Main(context.Context):
                 sys.exit()
             elif o in ("-m", "--max-nodes"):
                 self.nodes_count_max = int(a)
+            elif o in ("-t", "--threads"):
+                self.threads = int(a)
             else:
                 assert False, "unhandled option"
         self.in_memory = True
@@ -36,12 +40,80 @@ class Main(context.Context):
         self.old_network_client_path = migration_conf.get("old_network_client_path")
         self.new_network_client_path = migration_conf.get("new_network_client_path")
         self.old_uuid_2_address_path = migration_conf.get("old_uuid_2_address_path")
-        self.old_cpm_file_path = os.path.join(self.old_infrastructure_path, "compare.json")
-        self.new_cpm_file_path = os.path.join(self.new_infrastructure_path, "compare.json")
-        self.old_ign_file_path = os.path.join(self.old_infrastructure_path, "ignored.json")
-        self.new_ign_file_path = os.path.join(self.new_infrastructure_path, "ignored.json")
+        self.old_cpm_file_path = os.path.join(self.old_infrastructure_path, files_prefix + "compare.json")
+        self.new_cpm_file_path = os.path.join(self.new_infrastructure_path, files_prefix + "compare.json")
+        self.old_ign_file_path = os.path.join(self.old_infrastructure_path, files_prefix + "ignored.json")
+        self.new_ign_file_path = os.path.join(self.new_infrastructure_path, files_prefix + "ignored.json")
 
-    def compare(self):
+    def batch(self, batch_thread_info):
+        thread_index = batch_thread_info[1]
+        nodes = batch_thread_info[2]
+        if len(nodes) > 0:
+            files_prefix = "thread_" + str(thread_index) + "_"
+            main = Main("", files_prefix)
+            batch_thread_info[4] = main
+            main.nodes = self.nodes
+            main.nodes_by_address = self.nodes_by_address
+            main.verbose = self.verbose
+            main.compare(nodes)
+
+        batch_thread_info[3] = True
+
+    def start_batch(self):
+        nodes = os.listdir(self.old_infrastructure_path)
+        pending_nodes = []
+        for path in nodes:
+            old_node_path = os.path.join(self.old_infrastructure_path, path)
+            new_node_path = os.path.join(self.new_infrastructure_path, path)
+            if not os.path.isdir(old_node_path):
+                continue
+            if not os.path.isdir(new_node_path):
+                assert False, "Migrated node " + path + " is not found"
+
+            print("Loading node #" + str(len(self.nodes) + 1) + ": " + path)
+            node_comparator = NodeComparator(
+                self, path, old_node_path, new_node_path,
+                self.old_network_client_path, self.new_network_client_path,
+                self.old_uuid_2_address_path)
+            self.nodes[node_comparator.node_name] = node_comparator
+            self.nodes_by_address[node_comparator.new_node_address] = node_comparator
+
+            compared_file_path = os.path.join(new_node_path, "compared.json")
+            if os.path.isfile(compared_file_path):
+                continue
+            if len(pending_nodes) >= self.nodes_count_max:
+                continue
+            pending_nodes.append(path)
+
+        nodes_per_thread = int(len(pending_nodes) / self.threads + 1)
+        nodes_reserved = 0
+        batch_threads_info = []
+        for t in range(self.threads):
+            nodes_end = min(nodes_reserved + nodes_per_thread, len(pending_nodes))
+            curr_nodes = pending_nodes[nodes_reserved:nodes_end]
+            nodes_reserved = nodes_end
+            batch_thread_info = [None, t, curr_nodes, False, None]
+            batch_thread = \
+                threading.Thread(target=self.batch, args=(batch_thread_info, ))
+            batch_thread.start()
+            batch_thread_info[0] = batch_thread
+            batch_threads_info.append(batch_thread_info)
+
+        for batch_thread_info in batch_threads_info:
+            while not batch_thread_info[3]:
+                time.sleep(1)
+
+        for batch_thread_info in batch_threads_info:
+            if batch_thread_info[4] is None:
+                continue
+            batch_thread_info[4].calculating_migration_outcome()
+            print()
+
+    def compare(self, nodes=None):
+        if self.threads is not None:
+            self.start_batch()
+            return
+
         old_uuid_2_address_dir = self.old_uuid_2_address_path[:self.old_uuid_2_address_path.rindex('/')]
         print("old_uuid_2_address_dir="+old_uuid_2_address_dir)
         old_uuid_2_address_thread = threading.Thread(
@@ -52,8 +124,8 @@ class Main(context.Context):
         self.load_comparision_files()
 
         print()
-        nodes = os.listdir(self.old_infrastructure_path)
-        for path in nodes:
+        all_nodes = os.listdir(self.old_infrastructure_path) if nodes is None else nodes
+        for path in all_nodes:
             old_node_path = os.path.join(self.old_infrastructure_path, path)
             new_node_path = os.path.join(self.new_infrastructure_path, path)
             if not os.path.isdir(old_node_path):
@@ -78,6 +150,7 @@ class Main(context.Context):
                 print("Failed to compare node #" + str(node_comparator.node_idx + 1) + ": " + node_comparator.node_name)
                 self.load_comparision_files()
 
+    def calculating_migration_outcome(self):
         print()
         print("Calculating migration outcome...")
         try:
@@ -97,7 +170,6 @@ class Main(context.Context):
             os.rename(self.new_ign_file_path, self.new_ign_file_path + "." + curr_time)
         except:
             print("FAILURE: there are nothing to compare!")
-        print()
 
     def load_comparision_files(self):
         print("Loading 'compare.json' files...")
@@ -143,7 +215,12 @@ class Main(context.Context):
 
 if __name__ == "__main__":
     start_time = time.time()
-    Main().compare()
+    main = Main()
+    main.compare()
+    if main.threads is None:
+        main.calculating_migration_outcome()
+        print()
+
     hours, rem = divmod(time.time() - start_time, 3600)
     minutes, seconds = divmod(rem, 60)
     print("Finished in {:0>2}:{:0>2}:{:05.2f}".format(int(hours), int(minutes), seconds))

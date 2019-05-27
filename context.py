@@ -26,6 +26,7 @@ class Context:
         self.new_ignored_json = {}
         self.nodes_count_processed = 0
         self.nodes_count_max = sys.maxsize
+        self.threads = None
 
     def run_uuid_2_address(self, node_path, client_path):
         print("Starting uuid_2_address...")

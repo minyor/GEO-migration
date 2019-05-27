@@ -21,15 +21,16 @@ class NodeComparator(NodeExecutor):
         print("Comparing node #"+str(self.node_idx+1)+": " + self.node_name)
 
         self.retrieve_data_from_old_node()
-        self.clean()
-
         self.retrieve_data_from_new_node()
-        self.clean()
 
         with open(compared_file_path, 'w') as cpm_file_out:
             json.dump({}, cpm_file_out, sort_keys=True, indent=4, ensure_ascii=False)
         self.ctx.save_comparision_files()
         self.ctx.nodes_count_processed += 1
+
+    def clear(self, node_handle):
+        node_handle.terminate()
+        self.clean()
 
     def retrieve_data_from_old_node(self):
         print("Process old node...")
@@ -39,8 +40,7 @@ class NodeComparator(NodeExecutor):
             threading.Thread(target=self.open_node_result_fifo, args=(self.old_result_fifo_path,))
         old_node_result_fifo_thread.start()
 
-        old_node_run_thread = threading.Thread(target=self.run_node, args=(self.old_node_path, self.old_client_path))
-        old_node_run_thread.start()
+        node_handle = self.run_node(self.old_node_path, self.old_client_path)
 
         self.ctx.old_comparision_json[self.node_name] = {}
         json_node = self.ctx.old_comparision_json[self.node_name]
@@ -48,19 +48,25 @@ class NodeComparator(NodeExecutor):
         self.ctx.old_ignored_json[self.node_name] = {}
         json_ignored_node = self.ctx.old_ignored_json[self.node_name]
 
-        time.sleep(0.1)
-        print("Requesting equivalents...")
-        result_eq = self.run_command(
-            commands_fifo_path,
-            '13e5cf8c-5834-4e52-b65b-f9281dd1ff91\tGET:equivalents\n').decode("utf-8")
-        result_eq = result_eq.split('\t')
-        eq_count = int(result_eq[2])
-        print("Found " + str(eq_count) + " equivalents")
-        for e in range(eq_count):
-            eq = int(result_eq[e + 3])
-            self.retrieve_tl_from_old_node(commands_fifo_path, json_node, eq)
-            self.retrieve_h_tl_from_old_node(commands_fifo_path, json_node, json_ignored_node, eq)
-            self.retrieve_h_p_from_old_node(commands_fifo_path, json_node, json_ignored_node, eq)
+        try:
+            time.sleep(0.1)
+            print("Requesting equivalents...")
+            result_eq = self.run_command(
+                commands_fifo_path,
+                '13e5cf8c-5834-4e52-b65b-f9281dd1ff91\tGET:equivalents\n').decode("utf-8")
+            result_eq = result_eq.split('\t')
+            eq_count = int(result_eq[2])
+            print("Found " + str(eq_count) + " equivalents")
+            for e in range(eq_count):
+                eq = int(result_eq[e + 3])
+                self.retrieve_tl_from_old_node(commands_fifo_path, json_node, eq)
+                self.retrieve_h_tl_from_old_node(commands_fifo_path, json_node, json_ignored_node, eq)
+                self.retrieve_h_p_from_old_node(commands_fifo_path, json_node, json_ignored_node, eq)
+        except:
+            self.clear(node_handle)
+            assert False, "Reassert "
+
+        self.clear(node_handle)
 
     def retrieve_tl_from_old_node(self, commands_fifo_path, json_node, eq):
         print("\tRequesting trust lines for equivalent " + str(eq) + "...")
@@ -188,25 +194,30 @@ class NodeComparator(NodeExecutor):
             threading.Thread(target=self.open_node_result_fifo,args=(self.new_result_fifo_path,))
         new_node_result_fifo_thread.start()
 
-        new_node_run_thread = threading.Thread(target=self.run_node, args=(self.new_node_path, self.new_client_path))
-        new_node_run_thread.start()
+        node_handle = self.run_node(self.new_node_path, self.new_client_path)
 
         self.ctx.new_comparision_json[self.node_name] = {}
         json_node = self.ctx.new_comparision_json[self.node_name]
 
-        time.sleep(0.1)
-        print("Requesting equivalents...")
-        result_eq = self.run_command(
-            commands_fifo_path,
-            '13e5cf8c-5834-4e52-b65b-f9281dd1ff91\tGET:equivalents\n').decode("utf-8")
-        result_eq = result_eq.split('\t')
-        eq_count = int(result_eq[2])
-        print("Found " + str(eq_count) + " equivalents")
-        for e in range(eq_count):
-            eq = int(result_eq[e + 3])
-            self.retrieve_tl_from_new_node(commands_fifo_path, json_node, eq)
-            self.retrieve_h_tl_from_new_node(commands_fifo_path, json_node, eq)
-            self.retrieve_h_p_from_new_node(commands_fifo_path, json_node, eq)
+        try:
+            time.sleep(0.1)
+            print("Requesting equivalents...")
+            result_eq = self.run_command(
+                commands_fifo_path,
+                '13e5cf8c-5834-4e52-b65b-f9281dd1ff91\tGET:equivalents\n').decode("utf-8")
+            result_eq = result_eq.split('\t')
+            eq_count = int(result_eq[2])
+            print("Found " + str(eq_count) + " equivalents")
+            for e in range(eq_count):
+                eq = int(result_eq[e + 3])
+                self.retrieve_tl_from_new_node(commands_fifo_path, json_node, eq)
+                self.retrieve_h_tl_from_new_node(commands_fifo_path, json_node, eq)
+                self.retrieve_h_p_from_new_node(commands_fifo_path, json_node, eq)
+        except:
+            self.clear(node_handle)
+            assert False, "Reassert "
+
+        self.clear(node_handle)
 
     def retrieve_tl_from_new_node(self, commands_fifo_path, json_node, eq):
         print("\tRequesting trust lines for equivalent " + str(eq) + "...")
