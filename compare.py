@@ -151,7 +151,6 @@ class Main(context.Context):
                 self.load_comparision_files()
 
     def calculating_migration_outcome(self):
-        print()
         print("Calculating migration outcome...")
         try:
             old_cpm_file = str(json.load(open(self.old_cpm_file_path)))
@@ -161,8 +160,8 @@ class Main(context.Context):
             else:
                 print("FAILURE: old and new comparision json files differs!")
 
-            print()
-            print("Renaming comparision json files as old...")
+            #print()
+            #print("Renaming comparision json files as old...")
             curr_time = str(datetime.datetime.now())
             os.rename(self.old_cpm_file_path, self.old_cpm_file_path + "." + curr_time)
             os.rename(self.new_cpm_file_path, self.new_cpm_file_path + "." + curr_time)
@@ -218,6 +217,7 @@ if __name__ == "__main__":
     main = Main()
     main.compare()
     if main.threads is None:
+        print()
         main.calculating_migration_outcome()
         print()
 
