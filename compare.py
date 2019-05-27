@@ -103,11 +103,12 @@ class Main(context.Context):
             while not batch_thread_info[3]:
                 time.sleep(1)
 
+        print("Calculating migration outcome...")
         for batch_thread_info in batch_threads_info:
             if batch_thread_info[4] is None:
                 continue
+            print("[Thread: "+str(batch_thread_info[1]+1)+"] ", end="")
             batch_thread_info[4].calculating_migration_outcome()
-            print()
 
     def compare(self, nodes=None):
         if self.threads is not None:
@@ -151,7 +152,6 @@ class Main(context.Context):
                 self.load_comparision_files()
 
     def calculating_migration_outcome(self):
-        print("Calculating migration outcome...")
         try:
             old_cpm_file = str(json.load(open(self.old_cpm_file_path)))
             new_cpm_file = str(json.load(open(self.new_cpm_file_path)))
@@ -218,6 +218,7 @@ if __name__ == "__main__":
     main.compare()
     if main.threads is None:
         print()
+        print("Calculating migration outcome...")
         main.calculating_migration_outcome()
         print()
 
