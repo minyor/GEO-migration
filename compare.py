@@ -160,13 +160,14 @@ class Main(context.Context):
             else:
                 print("FAILURE: old and new comparision json files differs!")
 
-            #print()
-            #print("Renaming comparision json files as old...")
-            curr_time = str(datetime.datetime.now())
-            os.rename(self.old_cpm_file_path, self.old_cpm_file_path + "." + curr_time)
-            os.rename(self.new_cpm_file_path, self.new_cpm_file_path + "." + curr_time)
-            os.rename(self.old_ign_file_path, self.old_ign_file_path + "." + curr_time)
-            os.rename(self.new_ign_file_path, self.new_ign_file_path + "." + curr_time)
+            if 0 != 0:
+                #print()
+                #print("Renaming comparision json files as old...")
+                curr_time = str(datetime.datetime.now())
+                os.rename(self.old_cpm_file_path, self.old_cpm_file_path + "." + curr_time)
+                os.rename(self.new_cpm_file_path, self.new_cpm_file_path + "." + curr_time)
+                os.rename(self.old_ign_file_path, self.old_ign_file_path + "." + curr_time)
+                os.rename(self.new_ign_file_path, self.new_ign_file_path + "." + curr_time)
         except:
             print("FAILURE: there are nothing to compare!")
 
