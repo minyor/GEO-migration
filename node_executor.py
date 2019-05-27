@@ -27,6 +27,7 @@ class NodeExecutor(NodeGenerator):
 
         self.update_conf_json()
         self.read_new_conf_json()
+        self.node_idx = len(self.ctx.nodes)
 
     def read_new_conf_json(self):
         with open(os.path.join(self.new_node_path, "conf.json")) as conf_file:
@@ -118,7 +119,7 @@ class NodeExecutor(NodeGenerator):
                 self.command_result = None
                 return result
             except:
-                print("Failed to run command, retrying...")
+                #print("Failed to run command, retrying...")
                 time.sleep(0.1)
                 continue
 

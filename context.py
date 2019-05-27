@@ -1,4 +1,4 @@
-import os
+import os, sys
 import subprocess
 import tempfile
 import pickle
@@ -8,6 +8,7 @@ class Context:
     def __init__(self):
         # For all operations:
         self.verbose = False
+        self.nodes_array = []
         self.nodes = dict()
         self.nodes_by_address = dict()
 
@@ -23,6 +24,8 @@ class Context:
         self.new_comparision_json = {}
         self.old_ignored_json = {}
         self.new_ignored_json = {}
+        self.nodes_count_processed = 0
+        self.nodes_count_max = sys.maxsize
 
     def run_uuid_2_address(self, node_path, client_path):
         print("Starting uuid_2_address...")

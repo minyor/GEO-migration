@@ -13,13 +13,23 @@ class NodeComparator(NodeExecutor):
         super().__init__(ctx, node_name, old_node_path, new_node_path, old_client_path, new_client_path, old_uuid_2_address_path)
 
     def compare(self):
+        compared_file_path = os.path.join(self.new_node_path, "compared.json")
+        if os.path.isfile(compared_file_path):
+            return
+
         print()
+        print("Comparing node #"+str(self.node_idx+1)+": " + self.node_name)
 
         self.retrieve_data_from_old_node()
         self.clean()
 
         self.retrieve_data_from_new_node()
         self.clean()
+
+        with open(compared_file_path, 'w') as cpm_file_out:
+            json.dump({}, cpm_file_out, sort_keys=True, indent=4, ensure_ascii=False)
+        self.ctx.nodes_count_processed += 1
+        self.ctx.save_comparision_files()
 
     def retrieve_data_from_old_node(self):
         print("Process old node...")
