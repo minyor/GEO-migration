@@ -36,13 +36,6 @@ class Main(context.Context):
         new_network_client_path = migration_conf.get("new_network_client_path")
         old_uuid_2_address_path = migration_conf.get("old_uuid_2_address_path")
 
-        old_uuid_2_address_dir = old_uuid_2_address_path[:old_uuid_2_address_path.rindex('/')]
-        print("old_uuid_2_address_dir="+old_uuid_2_address_dir)
-        old_uuid_2_address_thread = threading.Thread(
-            target=self.run_uuid_2_address,
-            args=(old_uuid_2_address_dir, old_uuid_2_address_path))
-        old_uuid_2_address_thread.start()
-
         print()
         nodes = os.listdir(old_infrastructure_path)
         for path in nodes:
@@ -59,8 +52,21 @@ class Main(context.Context):
             self.nodes[node_validator.node_name] = node_validator
             self.nodes_by_address[node_validator.new_node_address] = node_validator
 
+        nodes_succeeded_count = 0
+        nodes_failed_count = 0
         for node_validator in self.nodes.values():
-            node_validator.validate()
+            try:
+                node_validator.validate()
+            except:
+                print("Failed to validate node #" + str(node_validator.node_idx + 1) + ": " + node_validator.node_name)
+            if node_validator.checked:
+                nodes_succeeded_count += 1
+            else:
+                nodes_failed_count += 1
+
+        print("Calculating node_validation outcome...")
+        print("Succeeded=" + str(nodes_succeeded_count) + " Failed=" + str(nodes_failed_count) +
+              " All=" + str(len(self.nodes)))
 
     @staticmethod
     def usage():
