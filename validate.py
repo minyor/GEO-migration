@@ -2,6 +2,7 @@ import os, sys
 import json
 import getopt
 import shutil
+import operator
 import threading
 import time
 import context
@@ -54,7 +55,8 @@ class Main(context.Context):
 
         nodes_succeeded_count = 0
         nodes_failed_count = 0
-        for node_validator in self.nodes.values():
+        sorted_nodes = sorted(self.nodes.values(), key=operator.attrgetter('trust_lines_count'), reverse=True)
+        for node_validator in sorted_nodes:
             try:
                 node_validator.validate()
             except:

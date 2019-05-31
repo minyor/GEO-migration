@@ -29,6 +29,16 @@ class NodeValidator(NodeExecutor):
         self.node_handle = None
         self.trust_lines = None
         self.checked = False
+        self.trust_lines_count = int(0)
+
+        self.db_connect(False)
+        self.new_storage_cur.execute(
+            "SELECT COUNT(*) "
+            "FROM trust_lines;")
+        rows = self.new_storage_cur.fetchall()
+        self.trust_lines_count = rows[0][0]
+        print("self.trust_lines_count="+str(self.trust_lines_count))
+        self.db_disconnect(False)
 
     def init(self, verbose=True):
         new_node_result_fifo_thread = \
@@ -100,24 +110,35 @@ class NodeValidator(NodeExecutor):
               " keys=(" + str(trust_line.own_keys) +
               ":" + str(trust_line.contractor_keys) + ")")
         print("\tTrying to change trust line ota to " + str(new_outgoing_trust_amount) + "...")
-        if 0 != 1:
-            result_tl = node.run_command(
-                node.new_commands_fifo_path,
-                '13e5cf8c-5834-4e52-b65b-f9281dd1ff91\tSET:contractors/trust-lines\t' +
-                str(trust_line.contractor_id) + '\t' +
-                str(int(new_outgoing_trust_amount)) + '\t' +
-                str(trust_line.equivalent) + '\n'). \
-                decode("utf-8")
-            print('Result: "{0}"'.format(result_tl))
-            result_tl = result_tl.split('\t')
-            tl_success = int(result_tl[1])
-            print("\t\t" + ("SUCCESS: " if tl_success == 200 else "FAILURE: ") + str(tl_success))
 
-        trust_line_changed = node.get_trust_line(trust_line.contractor_id, trust_line.equivalent)
-        print("\tTrust line after: ota=" + str(trust_line_changed.outgoing_trust_amount) +
-              " state=" + str(trust_line_changed.state) +
-              " keys=(" + str(trust_line_changed.own_keys) +
-              ":" + str(trust_line_changed.contractor_keys) + ")")
+        result_tl = node.run_command(
+            node.new_commands_fifo_path,
+            '13e5cf8c-5834-4e52-b65b-f9281dd1ff91\tSET:contractors/trust-lines\t' +
+            str(trust_line.contractor_id) + '\t' +
+            str(int(new_outgoing_trust_amount)) + '\t' +
+            str(trust_line.equivalent) + '\n'). \
+            decode("utf-8")
+        #print('Result: "{0}"'.format(result_tl))
+        result_tl = result_tl.split('\t')
+        tl_success = int(result_tl[1])
+        print("\t\t" + ("SUCCESS: " if tl_success == 200 else "FAILURE: ") + str(tl_success))
+
+        state_get_retr_count = 0
+        while True:
+            trust_line_changed = node.get_trust_line(trust_line.contractor_id, trust_line.equivalent)
+            print("\tTrust line after: ota=" + str(trust_line_changed.outgoing_trust_amount) +
+                  " state=" + str(trust_line_changed.state) +
+                  " keys=(" + str(trust_line_changed.own_keys) +
+                  ":" + str(trust_line_changed.contractor_keys) + ")")
+            curr_state = trust_line_changed.state
+            if curr_state == 2:
+                break
+            state_get_retr_count += 1
+            if state_get_retr_count > 10:
+                print("\tError: Waiting for state 2 is over")
+                break
+            print("\twaiting 0.5 sec...")
+            time.sleep(0.5)
         return trust_line_changed
 
     def clear(self):
