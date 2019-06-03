@@ -25,9 +25,9 @@ class NodeExecutor(NodeGenerator):
         self.result_fifo_handler = None
         self.command_result = None
 
+        self.node_idx = len(self.ctx.nodes)
         self.update_conf_json()
         self.read_new_conf_json()
-        self.node_idx = len(self.ctx.nodes)
 
     def read_new_conf_json(self):
         with open(os.path.join(self.new_node_path, "conf.json")) as conf_file:
@@ -42,6 +42,8 @@ class NodeExecutor(NodeGenerator):
                 uuid2address = data["uuid2address"]
                 uuid2address["host"] = "127.0.0.1"
                 uuid2address["port"] = 1500
+                network = data["network"]
+                network["port"] = 20000 + self.node_idx
                 with open(os.path.join(self.old_node_path, "conf.json"), 'w') as conf_file_out:
                     json.dump(data, conf_file_out, sort_keys=True, indent=4, ensure_ascii=False)
         except:
