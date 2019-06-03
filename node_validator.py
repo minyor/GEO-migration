@@ -4,7 +4,7 @@ import threading
 import time
 from operator import truediv
 
-import context
+import node_context
 
 from node_executor import NodeExecutor
 
@@ -37,7 +37,6 @@ class NodeValidator(NodeExecutor):
             "FROM trust_lines;")
         rows = self.new_storage_cur.fetchall()
         self.trust_lines_count = rows[0][0]
-        print("self.trust_lines_count="+str(self.trust_lines_count))
         self.db_disconnect(False)
 
     def init(self, verbose=True):
@@ -204,6 +203,38 @@ class NodeValidator(NodeExecutor):
             self.new_commands_fifo_path,
             '13e5cf8c-5834-4e52-b65b-f9281dd1ff91\tGET:contractors/trust-lines/one/id\t' +
             str(contractor_id) + '\t' + str(equivalent) + '\n'). \
+            decode("utf-8")
+        result_tl = result_tl.split('\t')
+        trust_line_array_shift = 2
+        contractor_id = int(result_tl[trust_line_array_shift + 0])
+        state = int(result_tl[trust_line_array_shift + 1])
+        own_keys = int(result_tl[trust_line_array_shift + 2])
+        contractor_keys = int(result_tl[trust_line_array_shift + 3])
+        incoming_trust_amount = float(result_tl[trust_line_array_shift + 4])
+        outgoing_trust_amount = float(result_tl[trust_line_array_shift + 5])
+        balance = float(result_tl[trust_line_array_shift + 6])
+        print("\t\t\tTrust line:" +
+              " incoming=" + str(incoming_trust_amount) + ";" +
+              " outgoing=" + str(outgoing_trust_amount) + ";" +
+              " balance=" + str(balance))
+        trust_line = NodeValidator.TrustLine()
+        trust_line.equivalent = equivalent
+        trust_line.contractor_id = contractor_id
+        trust_line.state = state
+        trust_line.own_keys = own_keys
+        trust_line.contractor_keys = contractor_keys
+        trust_line.incoming_trust_amount = incoming_trust_amount
+        trust_line.outgoing_trust_amount = outgoing_trust_amount
+        trust_line.balance = balance
+        return trust_line
+
+    def get_trust_line(self, address, equivalent):
+        print("\t\tRequesting trust line for address=" + str(address) +
+              " equivalent " + str(equivalent) + "...")
+        result_tl = self.run_command(
+            self.new_commands_fifo_path,
+            '13e5cf8c-5834-4e52-b65b-f9281dd1ff91\tGET:contractors/trust-lines/one/address\t1\t12\t' +
+            str(address) + '\t' + str(equivalent) + '\n'). \
             decode("utf-8")
         result_tl = result_tl.split('\t')
         trust_line_array_shift = 2

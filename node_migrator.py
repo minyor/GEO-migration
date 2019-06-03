@@ -3,7 +3,7 @@ import sqlite3
 import json
 import subprocess
 import tempfile
-import context
+import node_context
 
 from node_generator import NodeGenerator
 
@@ -12,10 +12,7 @@ class NodeMigrator(NodeGenerator):
     def __init__(self, ctx, node_name, old_node_path, new_node_path, new_node_address, client_path):
         super().__init__(ctx, node_name, old_node_path, new_node_path, new_node_address)
         self.client_path = client_path
-
         self.channel_idx = 0
-        self.old_trust_lines = []
-        self.old_history = []
 
         self.channels = dict()
         self.trust_lines = dict()
@@ -33,7 +30,7 @@ class NodeMigrator(NodeGenerator):
             (self.channel_idx, id_on_contractor_side, sqlite3.Binary(pk + sk + ok))
         )
 
-        channel = context.Channel()
+        channel = node_context.Channel()
         self.channels[self.channel_idx] = channel
         channel.id = self.channel_idx
         channel.id_on_contractor_side = id_on_contractor_side
@@ -67,7 +64,7 @@ class NodeMigrator(NodeGenerator):
             )
             old_trust_line.id = self.new_storage_cur.lastrowid
 
-            trust_line = context.TrustLine()
+            trust_line = node_context.TrustLine()
             self.trust_lines[old_trust_line.id] = trust_line
             trust_line.id = old_trust_line.id
             trust_line.contractor_id = local_id
@@ -130,43 +127,6 @@ class NodeMigrator(NodeGenerator):
         if not self.ctx.in_memory:
             self.db_disconnect(False)
 
-    def retrieve_old_data(self):
-        self.retrieve_old_trust_lines()
-        self.retrieve_old_history()
-
-    def retrieve_old_trust_lines(self):
-        self.old_storage_cur.execute(
-            "SELECT contractor, incoming_amount, outgoing_amount, balance, is_contractor_gateway, equivalent "
-            "FROM trust_lines;")
-        rows = self.old_storage_cur.fetchall()
-        for row in rows:
-            trust_line = context.TrustLine()
-            self.old_trust_lines.append(trust_line)
-            trust_line.contractor_id = self.read_uuid(row[0])
-            trust_line.contractor = row[0]
-            trust_line.incoming_amount = row[1]
-            trust_line.outgoing_amount = row[2]
-            trust_line.balance = row[3]
-            trust_line.is_contractor_gateway = row[4]
-            trust_line.equivalent = row[5]
-
-    def retrieve_old_history(self):
-        self.old_storage_cur.execute(
-            "SELECT operation_uuid, operation_timestamp, record_type, record_body, "
-                "record_body_bytes_count, equivalent, command_uuid "
-            "FROM history;")
-        rows = self.old_storage_cur.fetchall()
-        for row in rows:
-            history = context.History()
-            self.old_history.append(history)
-            history.operation_uuid = row[0]
-            history.operation_timestamp = row[1]
-            history.record_type = row[2]
-            history.record_body = row[3]
-            history.record_body_bytes_count = row[4]
-            history.equivalent = row[5]
-            history.command_uuid = row[6]
-
     def retrieve_own_keys(self):
         print("Starting node [own_keys]: " + self.node_name)
         self.run_and_wait()
@@ -179,7 +139,7 @@ class NodeMigrator(NodeGenerator):
         rows = self.new_storage_cur.fetchall()
         own_keys = []
         for row in rows:
-            own_key = context.OwnKey()
+            own_key = node_context.OwnKey()
             own_keys.append(own_key)
             own_key.hash = row[0]
             own_key.trust_line_id = row[1]

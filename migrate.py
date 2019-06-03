@@ -3,14 +3,14 @@ import json
 import getopt
 import shutil
 import time
-import context
+import node_context
 
 from settings import migration_conf
 from node_migrator import NodeMigrator
 from node_channel import NodeChannel
 
 
-class Main(context.Context):
+class Main(node_context.Context):
     def __init__(self):
         super().__init__()
         try:

@@ -3,7 +3,7 @@ import sqlite3
 import json
 import struct
 import binascii
-import context
+import node_context
 
 
 class NodeGenerator:
@@ -13,6 +13,8 @@ class NodeGenerator:
         self.new_node_path = new_node_path
         self.new_node_address = new_node_address
         self.old_node_address = None
+        self.old_trust_lines = []
+        self.old_history = []
 
         self.node_name = node_name
         self.read_conf_json()
@@ -20,7 +22,8 @@ class NodeGenerator:
         if assertions and self.new_node_address is None:
             assert False, "Cannot determine address of node " + self.node_name
 
-        os.makedirs(os.path.join(self.new_node_path, "io"), exist_ok=True)
+        if self.new_node_path is not None:
+            os.makedirs(os.path.join(self.new_node_path, "io"), exist_ok=True)
 
         self.old_storage_con = self.old_storage_cur = None
         self.new_storage_con = self.new_storage_cur = None
@@ -69,6 +72,43 @@ class NodeGenerator:
         data['equivalents_registry_address'] = "eth"
         with open(os.path.join(self.new_node_path, "conf.json"), 'w') as conf_file:
             json.dump(data, conf_file, sort_keys=True, indent=4, ensure_ascii=False)
+
+    def retrieve_old_data(self):
+        self.retrieve_old_trust_lines()
+        self.retrieve_old_history()
+
+    def retrieve_old_trust_lines(self):
+        self.old_storage_cur.execute(
+            "SELECT contractor, incoming_amount, outgoing_amount, balance, is_contractor_gateway, equivalent "
+            "FROM trust_lines;")
+        rows = self.old_storage_cur.fetchall()
+        for row in rows:
+            trust_line = node_context.TrustLine()
+            self.old_trust_lines.append(trust_line)
+            trust_line.contractor_id = self.read_uuid(row[0])
+            trust_line.contractor = row[0]
+            trust_line.incoming_amount = row[1]
+            trust_line.outgoing_amount = row[2]
+            trust_line.balance = row[3]
+            trust_line.is_contractor_gateway = row[4]
+            trust_line.equivalent = row[5]
+
+    def retrieve_old_history(self):
+        self.old_storage_cur.execute(
+            "SELECT operation_uuid, operation_timestamp, record_type, record_body, "
+                "record_body_bytes_count, equivalent, command_uuid "
+            "FROM history;")
+        rows = self.old_storage_cur.fetchall()
+        for row in rows:
+            history = node_context.History()
+            self.old_history.append(history)
+            history.operation_uuid = row[0]
+            history.operation_timestamp = row[1]
+            history.record_type = row[2]
+            history.record_body = row[3]
+            history.record_body_bytes_count = row[4]
+            history.equivalent = row[5]
+            history.command_uuid = row[6]
 
     def generate_tables(self):
         self.new_storage_cur.execute(
@@ -225,15 +265,17 @@ class NodeGenerator:
             print("Connecting to db of node: " + self.node_name)
         self.old_storage_con = sqlite3.connect(os.path.join(self.old_node_path, "io", "storageDB"))
         self.old_storage_cur = self.old_storage_con.cursor()
-        self.new_storage_con = sqlite3.connect(os.path.join(self.new_node_path, "io", "storageDB"))
-        self.new_storage_cur = self.new_storage_con.cursor()
+        if self.new_node_path is not None:
+            self.new_storage_con = sqlite3.connect(os.path.join(self.new_node_path, "io", "storageDB"))
+            self.new_storage_cur = self.new_storage_con.cursor()
 
     def db_disconnect(self, verbose=True):
         if verbose:
             print("Disconnecting from db of node: " + self.node_name)
         self.old_storage_cur.close()
-        self.new_storage_con.commit()
-        self.new_storage_cur.close()
+        if self.new_node_path is not None:
+            self.new_storage_con.commit()
+            self.new_storage_cur.close()
         self.old_storage_con = self.old_storage_cur = None
         self.new_storage_con = self.new_storage_cur = None
 

@@ -5,13 +5,13 @@ import shutil
 import operator
 import threading
 import time
-import context
+import node_context
 
 from settings import migration_conf
 from node_validator import NodeValidator
 
 
-class Main(context.Context):
+class Main(node_context.Context):
     def __init__(self):
         super().__init__()
         try:

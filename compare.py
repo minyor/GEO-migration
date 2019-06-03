@@ -5,13 +5,13 @@ import shutil
 import threading
 import time
 import datetime
-import context
+import node_context
 
 from settings import migration_conf
 from node_comparator import NodeComparator
 
 
-class Main(context.Context):
+class Main(node_context.Context):
     def __init__(self, custom_args=None, files_prefix=""):
         super().__init__()
         try:

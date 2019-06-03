@@ -5,7 +5,7 @@ import tempfile
 import time
 from random import randint
 
-import context
+import node_context
 
 from node_generator import NodeGenerator
 

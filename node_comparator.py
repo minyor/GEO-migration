@@ -3,7 +3,7 @@ import json
 import threading
 import time
 
-import context
+import node_context
 
 from node_executor import NodeExecutor
 
