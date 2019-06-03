@@ -31,9 +31,11 @@ class Main(node_context.Context):
         self.new_infrastructure_path = migration_conf.get("new_infrastructure_path")
 
     def check(self):
-        print()
         new_node_address = self.address
         nodes = os.listdir(self.old_infrastructure_path)
+
+        print()
+        print("Loading nodes...")
         for path in nodes:
             old_node_path = os.path.join(self.old_infrastructure_path, path)
             if not os.path.isdir(old_node_path):
@@ -44,8 +46,12 @@ class Main(node_context.Context):
             node_checker.db_disconnect(False)
             self.nodes[node_checker.node_name] = node_checker
 
+        print()
+        print("Checking nodes...")
         for node_checker in self.nodes.values():
             node_checker.check()
+
+        print()
 
     @staticmethod
     def usage():

@@ -77,6 +77,25 @@ class NodeGenerator:
         self.retrieve_old_trust_lines()
         self.retrieve_old_history()
 
+    @staticmethod
+    def read_amount(blob):
+        sign = -1
+        amount = str(binascii.hexlify(blob))
+        amount = amount[2:-1]
+        if len(amount) > 64:
+            sign = int(amount[0:2])
+            amount = amount[2:]
+        return sign, amount
+
+    @staticmethod
+    def check_if_bal_is_null(balance):
+        for char in balance[1]:
+            if char != '0':
+                return False
+        if balance[0] != 0:
+            return False
+        return True
+
     def retrieve_old_trust_lines(self):
         self.old_storage_cur.execute(
             "SELECT contractor, incoming_amount, outgoing_amount, balance, is_contractor_gateway, equivalent "
