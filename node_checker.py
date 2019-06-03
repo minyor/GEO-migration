@@ -35,7 +35,7 @@ class NodeChecker(NodeGenerator):
                 if trust_line2.equivalent != trust_line1.equivalent or \
                                 trust_line2.contractor_id != self.node_name:
                     continue
-                print("cid2="+trust_line2.contractor_id+" eq="+str(trust_line2.equivalent))# +
+                #print("cid2="+trust_line2.contractor_id+" eq="+str(trust_line2.equivalent))# +
                       #" ota="+str(trust_line2.outgoing_amount) + " ita="+str(trust_line2.incoming_amount))
 
         print()
