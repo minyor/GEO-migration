@@ -40,7 +40,7 @@ class NodeComparator(NodeExecutor):
             threading.Thread(target=self.open_node_result_fifo, args=(self.old_result_fifo_path,))
         old_node_result_fifo_thread.start()
 
-        node_handle = self.run_node(self.old_node_path, self.old_client_path)
+        node_handle = self.run_node(self.old_node_path, self.old_client_path, True, False)
 
         self.ctx.old_comparision_json[self.node_name] = {}
         json_node = self.ctx.old_comparision_json[self.node_name]
@@ -49,7 +49,7 @@ class NodeComparator(NodeExecutor):
         json_ignored_node = self.ctx.old_ignored_json[self.node_name]
 
         try:
-            time.sleep(0.1)
+            time.sleep(0.2)
             print("Requesting equivalents...")
             result_eq = self.run_command(
                 commands_fifo_path,
@@ -194,13 +194,13 @@ class NodeComparator(NodeExecutor):
             threading.Thread(target=self.open_node_result_fifo,args=(self.new_result_fifo_path,))
         new_node_result_fifo_thread.start()
 
-        node_handle = self.run_node(self.new_node_path, self.new_client_path)
+        node_handle = self.run_node(self.new_node_path, self.new_client_path, True, False)
 
         self.ctx.new_comparision_json[self.node_name] = {}
         json_node = self.ctx.new_comparision_json[self.node_name]
 
         try:
-            time.sleep(0.1)
+            time.sleep(0.2)
             print("Requesting equivalents...")
             result_eq = self.run_command(
                 commands_fifo_path,

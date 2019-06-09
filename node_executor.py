@@ -22,6 +22,10 @@ class NodeExecutor(NodeGenerator):
         self.new_commands_fifo_path = os.path.join(self.new_node_path, "fifo", "commands.fifo")
         self.db_disconnect(False)
 
+        # Remove command fifo. A workaround to run some old nodes
+        if os.path.exists(self.old_commands_fifo_path):
+            os.remove(self.old_commands_fifo_path)
+
         self.result_fifo_handler = None
         self.command_result = None
 
@@ -42,8 +46,8 @@ class NodeExecutor(NodeGenerator):
                 uuid2address = data["uuid2address"]
                 uuid2address["host"] = "127.0.0.1"
                 uuid2address["port"] = 1500
-                network = data["network"]
-                network["port"] = 20000 + self.node_idx
+                #network = data["network"]
+                #network["port"] = 20000 + self.node_idx
                 with open(os.path.join(self.old_node_path, "conf.json"), 'w') as conf_file_out:
                     json.dump(data, conf_file_out, sort_keys=True, indent=4, ensure_ascii=False)
         except:
@@ -84,24 +88,49 @@ class NodeExecutor(NodeGenerator):
                 continue
             self.command_result = data
 
-    def run_node(self, node_path, client_path, verbose=True):
+    @staticmethod
+    def wait(proc):
+        try:
+            proc.wait(0.2)
+            return True
+        except:
+            return False
+
+    def run_node(self, node_path, client_path, verbose=True, un_buf=False):
         if verbose:
             print("Starting node: " + self.node_name)
-        with tempfile.TemporaryFile() as client_f:
-            client_proc = None
-            if self.ctx.verbose:
-                client_proc = subprocess.Popen(
-                    client_path,
-                    cwd=node_path
-                )
-                return client_proc
-            else:
-                client_proc = subprocess.Popen(
-                    client_path,
-                    cwd=node_path,
-                    stdout=client_f, stderr=client_f
-                )
-                return client_proc
+        if un_buf:
+            client_proc = subprocess.Popen(
+                ['stdbuf', '-o0', client_path],
+                #client_path,
+                cwd=node_path,
+                bufsize=0,
+                universal_newlines=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT
+            )
+            for line in iter(client_proc.stdout.readline, b''):
+                line = str(line.rstrip())
+                if self.ctx.verbose:
+                    print(line)
+                if line.find("INFO\t[CORE]\tProcessing started.") > -1:
+                    break
+        else:
+            with tempfile.TemporaryFile() as client_f:
+                client_proc = None
+                if self.ctx.verbose:
+                    client_proc = subprocess.Popen(
+                        client_path,
+                        cwd=node_path
+                    )
+                    return client_proc
+                else:
+                    client_proc = subprocess.Popen(
+                        client_path,
+                        cwd=node_path,
+                        stdout=client_f, stderr=client_f
+                    )
+            return client_proc
 
     def run_command(self, fifo, line):
         line = line.replace("\\t", '\t').replace("\\n", "\n")

@@ -1,6 +1,7 @@
 import os, sys
 import json
 import threading
+import signal
 import time
 from operator import truediv
 
@@ -45,7 +46,7 @@ class NodeValidator(NodeExecutor):
         new_node_result_fifo_thread.start()
 
         self.node_handle = self.run_node(self.new_node_path, self.new_client_path, verbose)
-        time.sleep(0.1)
+        time.sleep(0.2)
 
     def validate(self):
         print()
@@ -142,6 +143,7 @@ class NodeValidator(NodeExecutor):
 
     def clear(self):
         self.node_handle.terminate()
+        #os.killpg(os.getpgid(self.node_handle.pid), signal.SIGTERM)
         self.clean()
 
     def get_trust_lines(self):
@@ -228,7 +230,7 @@ class NodeValidator(NodeExecutor):
         trust_line.balance = balance
         return trust_line
 
-    def get_trust_line(self, address, equivalent):
+    def get_trust_line_by_address(self, address, equivalent):
         print("\t\tRequesting trust line for address=" + str(address) +
               " equivalent " + str(equivalent) + "...")
         result_tl = self.run_command(
