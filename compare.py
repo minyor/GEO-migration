@@ -107,11 +107,13 @@ class Main(node_context.Context):
                 time.sleep(1)
 
         print("Calculating migration outcome...")
+        compared_nodes_sum = 0
         for batch_thread_info in batch_threads_info:
             if batch_thread_info[4] is None:
                 continue
             print("[Thread: "+str(batch_thread_info[1]+1)+"] ", end="")
-            batch_thread_info[4].calculating_migration_outcome()
+            compared_nodes_sum += batch_thread_info[4].calculating_migration_outcome()
+        print("Nodes compared "+str(compared_nodes_sum)+"/"+str(len(pending_nodes)))
 
     def compare(self, nodes=None):
         if self.threads is not None:
@@ -172,8 +174,11 @@ class Main(node_context.Context):
                 os.rename(self.new_cpm_file_path, self.new_cpm_file_path + "." + curr_time)
                 os.rename(self.old_ign_file_path, self.old_ign_file_path + "." + curr_time)
                 os.rename(self.new_ign_file_path, self.new_ign_file_path + "." + curr_time)
+
+            return len(old_cpm_obj)
         except:
             print("FAILURE: there are nothing to compare!")
+            return 0
 
     def load_comparision_files(self):
         print("Loading 'compare.json' files...")
