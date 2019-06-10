@@ -18,7 +18,7 @@ class Main(context.Context):
         try:
             if custom_args is None:
                 custom_args = sys.argv[1:]
-            opts, args = getopt.getopt(custom_args, "hm:t:v", ["help"])
+            opts, args = getopt.getopt(custom_args, "hm:t:vc", ["help", "clean", "max-nodes", "threads"])
         except getopt.GetoptError as err:
             print(str(err))
             self.usage()
@@ -26,6 +26,8 @@ class Main(context.Context):
         for o, a in opts:
             if o == "-v":
                 self.verbose = True
+            elif o in ("-c", "--clean"):
+                self.clean = True
             elif o in ("-h", "--help"):
                 self.usage()
                 sys.exit()
@@ -120,6 +122,20 @@ class Main(context.Context):
               " : " + str(number_of_valid_nodes - compared_nodes_sum) + " nodes left")
 
     def compare(self, nodes=None):
+        if self.clean:
+            all_nodes = os.listdir(self.old_infrastructure_path) if nodes is None else nodes
+            for path in all_nodes:
+                old_node_path = os.path.join(self.old_infrastructure_path, path)
+                new_node_path = os.path.join(self.new_infrastructure_path, path)
+                if not os.path.isdir(old_node_path):
+                    continue
+                if not os.path.isdir(new_node_path):
+                    assert False, "Migrated node " + path + " is not found"
+                compared_file_path = os.path.join(new_node_path, "compared.json")
+                if os.path.isfile(compared_file_path):
+                    os.remove(compared_file_path)
+            return
+
         if self.threads is not None:
             self.start_batch()
             return
@@ -222,9 +238,10 @@ class Main(context.Context):
     @staticmethod
     def usage():
         print("Usage:")
-        print("\tpython compare.py [-v] [-m max nodes to process]")
+        print("\tpython compare.py [-v] [-t threads number] [-m max nodes to process]")
+        print("\t\t [-c --clean] : clean compared nodes flags")
         print("Example:")
-        print("\tpython compare.py")
+        print("\tpython compare.py -t 32")
 
 
 if __name__ == "__main__":
