@@ -22,9 +22,11 @@ class NodeExecutor(NodeGenerator):
         self.new_commands_fifo_path = os.path.join(self.new_node_path, "fifo", "commands.fifo")
         self.db_disconnect(False)
 
-        # Remove command fifo. A workaround to run some old nodes
+        # Remove command fifo. A workaround to run some nodes
         if os.path.exists(self.old_commands_fifo_path):
             os.remove(self.old_commands_fifo_path)
+        if os.path.exists(self.new_commands_fifo_path):
+            os.remove(self.new_commands_fifo_path)
 
         self.result_fifo_handler = None
         self.command_result = None
@@ -153,6 +155,7 @@ class NodeExecutor(NodeGenerator):
                 send_count += 1
                 if send_count > max_sent:
                     assert False, "No response from node " + self.node_name
+                print("Retrying command sending...")
                 continue
             result = self.command_result
             self.command_result = None
