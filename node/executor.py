@@ -135,10 +135,9 @@ class NodeExecutor(NodeGenerator):
     def run_command(self, fifo, line):
         send_count = 0
         max_sent = 1
+        line = line.replace("\\t", '\t').replace("\\n", "\n")
+        line = line.encode()
         while True:
-            line = line.replace("\\t", '\t').replace("\\n", "\n")
-            line = line.encode()
-
             fifo_write = open(fifo, 'wb')
             fifo_write.write(line)
             fifo_write.flush()
