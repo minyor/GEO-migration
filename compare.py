@@ -113,7 +113,7 @@ class Main(node_context.Context):
                 continue
             print("[Thread: "+str(batch_thread_info[1]+1)+"] ", end="")
             compared_nodes_sum += batch_thread_info[4].calculating_migration_outcome()
-        print("Nodes compared "+str(compared_nodes_sum)+"/"+str(len(pending_nodes)))
+        print("Nodes compared "+str(compared_nodes_sum)+"/"+str(len(pending_nodes))+"/"+str(len(nodes)))
 
     def compare(self, nodes=None):
         if self.threads is not None:
@@ -229,7 +229,8 @@ if __name__ == "__main__":
     if main.threads is None:
         print()
         print("Calculating migration outcome...")
-        main.calculating_migration_outcome()
+        compared_nodes_sum = main.calculating_migration_outcome()
+        print("Nodes compared "+str(compared_nodes_sum)+"/"+str(len(main.nodes)))
         print()
 
     hours, rem = divmod(time.time() - start_time, 3600)
