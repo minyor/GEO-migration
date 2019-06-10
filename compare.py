@@ -156,12 +156,13 @@ class Main(node_context.Context):
 
     def calculating_migration_outcome(self):
         try:
-            old_cpm_file = str(json.load(open(self.old_cpm_file_path)))
+            old_cpm_obj = json.load(open(self.old_cpm_file_path))
+            old_cpm_file = str(old_cpm_obj)
             new_cpm_file = str(json.load(open(self.new_cpm_file_path)))
             if old_cpm_file == new_cpm_file:
-                print("SUCCESS: old and new comparision json files are equal!")
+                print("SUCCESS["+str(len(old_cpm_obj))+"]: old and new comparision json files are equal!")
             else:
-                print("FAILURE: old and new comparision json files differs!")
+                print("FAILURE["+str(len(old_cpm_obj))+"]: old and new comparision json files differs!")
 
             if 0 != 0:
                 #print()
