@@ -1,17 +1,16 @@
-import os, sys
-import json
 import getopt
-import shutil
 import operator
-import threading
+import os
+import sys
 import time
-import node_context
 
+from node.validator import NodeValidator
+
+from node import context
 from settings import migration_conf
-from node_validator import NodeValidator
 
 
-class Main(node_context.Context):
+class Main(context.Context):
     def __init__(self):
         super().__init__()
         try:

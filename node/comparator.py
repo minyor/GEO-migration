@@ -1,11 +1,9 @@
-import os, sys
 import json
+import os
 import threading
 import time
 
-import node_context
-
-from node_executor import NodeExecutor
+from node.executor import NodeExecutor
 
 
 class NodeComparator(NodeExecutor):

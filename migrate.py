@@ -1,16 +1,18 @@
-import os, sys
-import json
 import getopt
+import json
+import os
 import shutil
+import sys
 import time
-import node_context
 
+from node import context
+from node.migrator import NodeMigrator
+
+from node.channel import NodeChannel
 from settings import migration_conf
-from node_migrator import NodeMigrator
-from node_channel import NodeChannel
 
 
-class Main(node_context.Context):
+class Main(context.Context):
     def __init__(self):
         super().__init__()
         try:

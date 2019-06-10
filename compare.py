@@ -1,17 +1,18 @@
-import os, sys
-import json
+import datetime
 import getopt
-import shutil
+import json
+import os
+import sys
 import threading
 import time
-import datetime
-import node_context
 
+from node.comparator import NodeComparator
+
+from node import context
 from settings import migration_conf
-from node_comparator import NodeComparator
 
 
-class Main(node_context.Context):
+class Main(context.Context):
     def __init__(self, custom_args=None, files_prefix=""):
         super().__init__()
         try:
@@ -181,7 +182,7 @@ class Main(node_context.Context):
 
             return len(old_cpm_obj)
         except:
-            print("FAILURE: there are nothing to compare!")
+            print("INFO: there are nothing to compare!")
             return 0
 
     def load_comparision_files(self):

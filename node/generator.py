@@ -1,9 +1,10 @@
+import binascii
+import json
 import os
 import sqlite3
-import json
 import struct
-import binascii
-import node_context
+
+from node import context
 
 
 class NodeGenerator:
@@ -102,7 +103,7 @@ class NodeGenerator:
             "FROM trust_lines;")
         rows = self.old_storage_cur.fetchall()
         for row in rows:
-            trust_line = node_context.TrustLine()
+            trust_line = context.TrustLine()
             self.old_trust_lines.append(trust_line)
             trust_line.contractor_id = self.read_uuid(row[0])
             trust_line.contractor = row[0]
@@ -119,7 +120,7 @@ class NodeGenerator:
             "FROM history;")
         rows = self.old_storage_cur.fetchall()
         for row in rows:
-            history = node_context.History()
+            history = context.History()
             self.old_history.append(history)
             history.operation_uuid = row[0]
             history.operation_timestamp = row[1]

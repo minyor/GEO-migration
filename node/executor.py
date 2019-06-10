@@ -1,13 +1,11 @@
-import os, sys
 import json
+import os
 import subprocess
 import tempfile
 import time
 from random import randint
 
-import node_context
-
-from node_generator import NodeGenerator
+from node.generator import NodeGenerator
 
 
 class NodeExecutor(NodeGenerator):

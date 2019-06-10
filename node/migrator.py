@@ -1,11 +1,10 @@
-import os, sys
 import sqlite3
-import json
 import subprocess
 import tempfile
-import node_context
 
-from node_generator import NodeGenerator
+from node.generator import NodeGenerator
+
+from node import context
 
 
 class NodeMigrator(NodeGenerator):
@@ -30,7 +29,7 @@ class NodeMigrator(NodeGenerator):
             (self.channel_idx, id_on_contractor_side, sqlite3.Binary(pk + sk + ok))
         )
 
-        channel = node_context.Channel()
+        channel = context.Channel()
         self.channels[self.channel_idx] = channel
         channel.id = self.channel_idx
         channel.id_on_contractor_side = id_on_contractor_side
@@ -64,7 +63,7 @@ class NodeMigrator(NodeGenerator):
             )
             old_trust_line.id = self.new_storage_cur.lastrowid
 
-            trust_line = node_context.TrustLine()
+            trust_line = context.TrustLine()
             self.trust_lines[old_trust_line.id] = trust_line
             trust_line.id = old_trust_line.id
             trust_line.contractor_id = local_id
@@ -139,7 +138,7 @@ class NodeMigrator(NodeGenerator):
         rows = self.new_storage_cur.fetchall()
         own_keys = []
         for row in rows:
-            own_key = node_context.OwnKey()
+            own_key = context.OwnKey()
             own_keys.append(own_key)
             own_key.hash = row[0]
             own_key.trust_line_id = row[1]

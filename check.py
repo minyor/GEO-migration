@@ -1,15 +1,15 @@
-import os, sys
-import json
 import getopt
-import shutil
+import os
+import sys
 import time
-import node_context
 
+from node.checker import NodeChecker
+
+from node import context
 from settings import migration_conf
-from node_checker import NodeChecker
 
 
-class Main(node_context.Context):
+class Main(context.Context):
     def __init__(self):
         super().__init__()
         try:

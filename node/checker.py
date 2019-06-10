@@ -1,12 +1,7 @@
-import os, sys
+import os
 import sqlite3
-import json
-import subprocess
-import tempfile
-import binascii
-import node_context
 
-from node_generator import NodeGenerator
+from node.generator import NodeGenerator
 
 
 class NodeChecker(NodeGenerator):
