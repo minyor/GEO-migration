@@ -46,16 +46,19 @@ class Main(node_context.Context):
         self.new_ign_file_path = os.path.join(self.new_infrastructure_path, files_prefix + "ignored.json")
 
     def batch(self, batch_thread_info):
-        thread_index = batch_thread_info[1]
-        nodes = batch_thread_info[2]
-        if len(nodes) > 0:
+        try:
+            thread_index = batch_thread_info[1]
+            nodes = batch_thread_info[2]
             files_prefix = "thread_" + str(thread_index) + "_"
             main = Main("", files_prefix)
             batch_thread_info[4] = main
-            main.nodes = self.nodes
-            main.nodes_by_address = self.nodes_by_address
-            main.verbose = self.verbose
-            main.compare(nodes)
+            if len(nodes) > 0:
+                main.nodes = self.nodes
+                main.nodes_by_address = self.nodes_by_address
+                main.verbose = self.verbose
+                main.compare(nodes)
+        except Exception as e:
+            print(e)
 
         batch_thread_info[3] = True
 
