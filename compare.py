@@ -155,7 +155,8 @@ class Main(node_context.Context):
                 break
             try:
                 node_comparator.compare()
-            except:
+            except Exception as e:
+                print(e)
                 print("Failed to compare node #" + str(node_comparator.node_idx + 1) + ": " + node_comparator.node_name)
                 self.load_comparision_files()
 

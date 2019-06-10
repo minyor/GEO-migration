@@ -59,7 +59,8 @@ class Main(node_context.Context):
         for node_validator in sorted_nodes:
             try:
                 node_validator.validate()
-            except:
+            except Exception as e:
+                print(e)
                 print("Failed to validate node #" + str(node_validator.node_idx + 1) + ": " + node_validator.node_name)
             if node_validator.checked:
                 nodes_succeeded_count += 1
