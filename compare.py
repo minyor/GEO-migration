@@ -65,6 +65,7 @@ class Main(node_context.Context):
     def start_batch(self):
         nodes = os.listdir(self.old_infrastructure_path)
         pending_nodes = []
+        number_of_valid_nodes = 0
         for path in nodes:
             old_node_path = os.path.join(self.old_infrastructure_path, path)
             new_node_path = os.path.join(self.new_infrastructure_path, path)
@@ -72,6 +73,7 @@ class Main(node_context.Context):
                 continue
             if not os.path.isdir(new_node_path):
                 assert False, "Migrated node " + path + " is not found"
+            number_of_valid_nodes += 1
 
             print("Loading node #" + str(len(self.nodes) + 1) + ": " + path)
             node_comparator = NodeComparator(
@@ -113,7 +115,8 @@ class Main(node_context.Context):
                 continue
             print("[Thread: "+str(batch_thread_info[1]+1)+"] ", end="")
             compared_nodes_sum += batch_thread_info[4].calculating_migration_outcome()
-        print("Nodes compared "+str(compared_nodes_sum)+"/"+str(len(pending_nodes))+"/"+str(len(nodes)))
+        print("Nodes compared "+str(compared_nodes_sum)+"/"+str(len(pending_nodes))+"/"+str(number_of_valid_nodes) +
+              " : " + str(number_of_valid_nodes - compared_nodes_sum) + " nodes left")
 
     def compare(self, nodes=None):
         if self.threads is not None:
@@ -230,7 +233,8 @@ if __name__ == "__main__":
         print()
         print("Calculating migration outcome...")
         compared_nodes_sum = main.calculating_migration_outcome()
-        print("Nodes compared "+str(compared_nodes_sum)+"/"+str(len(main.nodes)))
+        print("Nodes compared "+str(compared_nodes_sum)+"/"+str(len(main.nodes)) +
+              " : " + str(len(main.nodes) - compared_nodes_sum) + " nodes left")
         print()
 
     hours, rem = divmod(time.time() - start_time, 3600)
