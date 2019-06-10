@@ -123,17 +123,7 @@ class Main(context.Context):
 
     def compare(self, nodes=None):
         if self.clean:
-            all_nodes = os.listdir(self.old_infrastructure_path) if nodes is None else nodes
-            for path in all_nodes:
-                old_node_path = os.path.join(self.old_infrastructure_path, path)
-                new_node_path = os.path.join(self.new_infrastructure_path, path)
-                if not os.path.isdir(old_node_path):
-                    continue
-                if not os.path.isdir(new_node_path):
-                    assert False, "Migrated node " + path + " is not found"
-                compared_file_path = os.path.join(new_node_path, "compared.json")
-                if os.path.isfile(compared_file_path):
-                    os.remove(compared_file_path)
+            self.clean_comparision_data(nodes)
             return
 
         if self.threads is not None:
@@ -187,6 +177,9 @@ class Main(context.Context):
             else:
                 print("FAILURE["+str(len(old_cpm_obj))+"]: old and new comparision json files differs!")
 
+            # for node_name in old_cpm_obj.keys():
+            #     print("\tnode: "+str(node_name))
+
             if 0 != 0:
                 #print()
                 #print("Renaming comparision json files as old...")
@@ -234,6 +227,29 @@ class Main(context.Context):
             json.dump(self.old_ignored_json, cpm_file_out, sort_keys=True, indent=4, ensure_ascii=False)
         with open(self.new_ign_file_path, 'w') as cpm_file_out:
             json.dump(self.new_ignored_json, cpm_file_out, sort_keys=True, indent=4, ensure_ascii=False)
+
+    def clean_comparision_data(self, nodes):
+        all_nodes = os.listdir(self.old_infrastructure_path) if nodes is None else nodes
+        for path in all_nodes:
+            old_node_path = os.path.join(self.old_infrastructure_path, path)
+            new_node_path = os.path.join(self.new_infrastructure_path, path)
+            if old_node_path.rfind("compare.json") > -1 or old_node_path.rfind("ignored.json") > -1:
+                try:
+                    os.remove(old_node_path)
+                except:
+                    pass
+            if new_node_path.rfind("compare.json") > -1 or new_node_path.rfind("ignored.json") > -1:
+                try:
+                    os.remove(new_node_path)
+                except:
+                    pass
+            if not os.path.isdir(old_node_path):
+                continue
+            if not os.path.isdir(new_node_path):
+                assert False, "Migrated node " + path + " is not found"
+            compared_file_path = os.path.join(new_node_path, "compared.json")
+            if os.path.isfile(compared_file_path):
+                os.remove(compared_file_path)
 
     @staticmethod
     def usage():
