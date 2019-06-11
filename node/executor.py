@@ -134,7 +134,7 @@ class NodeExecutor(NodeGenerator):
 
     def run_command(self, fifo, line):
         send_count = 0
-        max_sent = 1
+        max_sent = 5
         line = line.replace("\\t", '\t').replace("\\n", "\n")
         line = line.encode()
         while True:
