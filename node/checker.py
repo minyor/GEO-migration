@@ -13,16 +13,34 @@ class NodeChecker(NodeGenerator):
         self.transactions_count = 0
         self.communicator_messages_queue_count = 0
 
+        self.transactions = []
+        self.communicator_messages = []
+
     def check(self):
         #print("Checking node: " + self.node_name)
         self.checked = True
 
         if self.transactions_count > 0:
             self.print_error(None, "Node has transactions_count: " + str(self.transactions_count))
+            transaction_idx = 0
+            for transaction in self.transactions:
+                print("\t\tTransaction #"+str(transaction_idx) +
+                      " transaction_uuid="+str(transaction)
+                      )
             self.checked = False
 
         if self.communicator_messages_queue_count > 0:
-            self.print_error(None, "Node has communicator_messages_queue_count: " + str(self.communicator_messages_queue_count))
+            self.print_error(None, "Node has communicator_messages_queue_count: " +
+                             str(self.communicator_messages_queue_count))
+            message_idx = 0
+            for message in self.communicator_messages:
+                print("\t\tMessage #"+str(message_idx) +
+                      " contractor_uuid="+str(message.contractor_uuid) +
+                      " transaction_uuid="+str(message.transaction_uuid) +
+                      " message_type="+str(message.message_type) +
+                      " recording_time="+str(message.recording_time) +
+                      " equivalent="+str(message.equivalent)
+                      )
             self.checked = False
 
         for trust_line1 in self.old_trust_lines:
@@ -75,6 +93,29 @@ class NodeChecker(NodeGenerator):
             "FROM communicator_messages_queue;")
         rows = self.old_com_storage_cur.fetchall()
         self.communicator_messages_queue_count = rows[0][0]
+
+        if self.transactions_count > 0:
+            self.old_storage_cur.execute(
+                "SELECT transaction_uuid "
+                "FROM transactions;")
+            rows = self.old_storage_cur.fetchall()
+            for row in rows:
+                transaction = self.read_uuid(row[0])
+                self.transactions.append(transaction)
+
+        if self.communicator_messages_queue_count > 0:
+            self.old_com_storage_cur.execute(
+                "SELECT contractor_uuid, transaction_uuid, message_type, recording_time, equivalent "
+                "FROM communicator_messages_queue;")
+            rows = self.old_com_storage_cur.fetchall()
+            for row in rows:
+                message = self.ctx.CommunicatorMessage()
+                self.communicator_messages.append(message)
+                message.contractor_uuid = self.read_uuid(row[0])
+                message.transaction_uuid = self.read_uuid(row[1])
+                message.message_type = row[2]
+                message.recording_time = row[3]
+                message.equivalent = row[4]
 
     def db_connect(self, verbose=True):
         super().db_connect(verbose)

@@ -114,3 +114,12 @@ class History:
         self.record_body_bytes_count = None
         self.equivalent = None
         self.command_uuid = None
+
+
+class CommunicatorMessage:
+    def __init__(self):
+        self.contractor_uuid = None
+        self.transaction_uuid = None
+        self.message_type = None
+        self.recording_time = None
+        self.equivalent = None
