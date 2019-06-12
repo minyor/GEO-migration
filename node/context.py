@@ -2,6 +2,7 @@ import os, sys
 import subprocess
 import tempfile
 import pickle
+import json
 
 
 class Context:
@@ -12,6 +13,11 @@ class Context:
         self.nodes_array = []
         self.nodes = dict()
         self.nodes_by_address = dict()
+
+        # Checking operation specific:
+        self.checking_tr_0_json = None
+        self.checking_tr_gw_bal_json = None
+        self.checking_tr_gw_non_bal_json = None
 
         # Migration operation specific:
         self.address = None
@@ -48,6 +54,18 @@ class Context:
         if self.migration_error_json is None:
             self.migration_error_json = {}
         self.migration_error_json[str(len(self.migration_error_json)+1)] = entry
+
+    @staticmethod
+    def append_node_uuid(json_obj, uuid, entry=None):
+        if json_obj is None:
+            json_obj = {}
+        json_obj[str(uuid)] = entry
+        return json_obj
+
+    @staticmethod
+    def save_json(json_obj, filename):
+        with open(filename, 'w') as cpm_file_out:
+            json.dump(json_obj, cpm_file_out, sort_keys=True, indent=4, ensure_ascii=False)
 
     def save(self):
         pass

@@ -31,6 +31,19 @@ class Main(context.Context):
         self.new_infrastructure_path = migration_conf.get("new_infrastructure_path")
 
     def check(self):
+        # Construct checking result file's paths
+        checking_tr_0_path = os.path.join(self.new_infrastructure_path, "checking_tr_0.json")
+        checking_tr_gw_bal_path = os.path.join(self.new_infrastructure_path, "checking_tr_gw_bal.json")
+        checking_tr_gw_non_bal_path = os.path.join(self.new_infrastructure_path, "checking_tr_gw_non_bal.json")
+
+        # Remove previous checking result files
+        if os.path.exists(checking_tr_0_path):
+            os.remove(checking_tr_0_path)
+        if os.path.exists(checking_tr_gw_bal_path):
+            os.remove(checking_tr_gw_bal_path)
+        if os.path.exists(checking_tr_gw_non_bal_path):
+            os.remove(checking_tr_gw_non_bal_path)
+
         new_node_address = self.address
         nodes = os.listdir(self.old_infrastructure_path)
 
@@ -52,6 +65,14 @@ class Main(context.Context):
             node_checker.check()
 
         print()
+
+        # Save checking result files
+        if self.checking_tr_0_json is not None:
+            self.save_json(self.checking_tr_0_json, checking_tr_0_path)
+        if self.checking_tr_gw_bal_json is not None:
+            self.save_json(self.checking_tr_gw_bal_json, checking_tr_gw_bal_path)
+        if self.checking_tr_gw_non_bal_json is not None:
+            self.save_json(self.checking_tr_gw_non_bal_json, checking_tr_gw_non_bal_path)
 
     @staticmethod
     def usage():

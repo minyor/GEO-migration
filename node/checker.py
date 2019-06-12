@@ -43,6 +43,9 @@ class NodeChecker(NodeGenerator):
                       )
             self.checked = False
 
+        non_null_bal = True
+        gateway_only = True
+
         for trust_line1 in self.old_trust_lines:
             node = self.ctx.nodes.get(trust_line1.contractor_id)
             if node is None:
@@ -52,10 +55,16 @@ class NodeChecker(NodeGenerator):
             ota1 = NodeChecker.read_amount(trust_line1.outgoing_amount)
             ita1 = NodeChecker.read_amount(trust_line1.incoming_amount)
             bal1 = NodeChecker.read_amount(trust_line1.balance)
+
+            if NodeChecker.check_if_bal_is_null(bal1):
+                non_null_bal = False
+
             for trust_line2 in node.old_trust_lines:
                 if trust_line2.equivalent != trust_line1.equivalent or \
                                 trust_line2.contractor_id != self.node_name:
                     continue
+                if trust_line2.is_contractor_gateway == 0:
+                    gateway_only = False
                 #print("\tChecking trust line: "+trust_line1.contractor_id+" eq=" +
                 #      str(trust_line1.equivalent))
                 ota2 = NodeChecker.read_amount(trust_line2.outgoing_amount)
@@ -71,6 +80,17 @@ class NodeChecker(NodeGenerator):
                         (bal1[0] == bal2[0] or bal1[1] != bal2[1]):
                     self.print_error(trust_line1, "Trust line balance does not match")
                     self.checked = False
+
+        if len(self.old_trust_lines) < 1:
+            self.ctx.checking_tr_0_json = self.ctx.append_node_uuid(
+                self.ctx.checking_tr_0_json, self.node_name)
+        elif gateway_only:
+            if non_null_bal:
+                self.ctx.checking_tr_gw_bal_json = self.ctx.append_node_uuid(
+                    self.ctx.checking_tr_gw_bal_json, self.node_name)
+            else:
+                self.ctx.checking_tr_gw_non_bal_json = self.ctx.append_node_uuid(
+                    self.ctx.checking_tr_gw_non_bal_json, self.node_name)
 
     def print_error(self, trust_line, msg):
         trust_line_str = ""
