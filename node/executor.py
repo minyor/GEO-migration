@@ -138,10 +138,11 @@ class NodeExecutor(NodeGenerator):
         line = line.replace("\\t", '\t').replace("\\n", "\n")
         line = line.encode()
         while True:
-            fifo_write = open(fifo, 'wb')
-            fifo_write.write(line)
-            fifo_write.flush()
-            fifo_write.close()
+            if os.path.exists(fifo):
+                fifo_write = open(fifo, 'wb')
+                fifo_write.write(line)
+                fifo_write.flush()
+                fifo_write.close()
 
             try_count = 0
             max_tries = 10 * 60
