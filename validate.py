@@ -14,7 +14,7 @@ class Main(context.Context):
     def __init__(self):
         super().__init__()
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "hv", ["help"])
+            opts, args = getopt.getopt(sys.argv[1:], "hvc", ["help", "clean"])
         except getopt.GetoptError as err:
             print(str(err))
             self.usage()
@@ -22,33 +22,38 @@ class Main(context.Context):
         for o, a in opts:
             if o == "-v":
                 self.verbose = True
+            elif o in ("-c", "--clean"):
+                self.clean = True
             elif o in ("-h", "--help"):
                 self.usage()
                 sys.exit()
             else:
                 assert False, "unhandled option"
         self.in_memory = True
+        self.old_infrastructure_path = migration_conf.get("old_infrastructure_path")
+        self.new_infrastructure_path = migration_conf.get("new_infrastructure_path")
+        self.old_network_client_path = migration_conf.get("old_network_client_path")
+        self.new_network_client_path = migration_conf.get("new_network_client_path")
+        self.old_uuid_2_address_path = migration_conf.get("old_uuid_2_address_path")
 
     def validate(self):
-        old_infrastructure_path = migration_conf.get("old_infrastructure_path")
-        new_infrastructure_path = migration_conf.get("new_infrastructure_path")
-        old_network_client_path = migration_conf.get("old_network_client_path")
-        new_network_client_path = migration_conf.get("new_network_client_path")
-        old_uuid_2_address_path = migration_conf.get("old_uuid_2_address_path")
+        if self.clean:
+            self.clean_validation_data(None)
+            return
 
         print()
-        nodes = os.listdir(old_infrastructure_path)
+        nodes = os.listdir(self.old_infrastructure_path)
         for path in nodes:
-            old_node_path = os.path.join(old_infrastructure_path, path)
-            new_node_path = os.path.join(new_infrastructure_path, path)
+            old_node_path = os.path.join(self.old_infrastructure_path, path)
+            new_node_path = os.path.join(self.new_infrastructure_path, path)
             if not os.path.isdir(old_node_path):
                 continue
             if not os.path.isdir(new_node_path):
                 assert False, "Migrated node " + path + " is not found"
             node_validator = NodeValidator(
                 self, path, old_node_path, new_node_path,
-                old_network_client_path, new_network_client_path,
-                old_uuid_2_address_path)
+                self.old_network_client_path, self.new_network_client_path,
+                self.old_uuid_2_address_path)
             self.nodes[node_validator.node_name] = node_validator
             self.nodes_by_address[node_validator.new_node_address] = node_validator
 
@@ -70,10 +75,24 @@ class Main(context.Context):
         print("Succeeded=" + str(nodes_succeeded_count) + " Failed=" + str(nodes_failed_count) +
               " All=" + str(len(self.nodes)))
 
+    def clean_validation_data(self, nodes):
+        all_nodes = os.listdir(self.old_infrastructure_path) if nodes is None else nodes
+        for path in all_nodes:
+            old_node_path = os.path.join(self.old_infrastructure_path, path)
+            new_node_path = os.path.join(self.new_infrastructure_path, path)
+            if not os.path.isdir(old_node_path):
+                continue
+            if not os.path.isdir(new_node_path):
+                assert False, "Migrated node " + path + " is not found"
+            validated_file_path = os.path.join(new_node_path, "validated.json")
+            if os.path.isfile(validated_file_path):
+                os.remove(validated_file_path)
+
     @staticmethod
     def usage():
         print("Usage:")
         print("\tpython validate.py [-v]")
+        print("\t\t [-c --clean] : clean validated nodes flags")
         print("Example:")
         print("\tpython validate.py")
 

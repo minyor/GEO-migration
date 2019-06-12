@@ -8,6 +8,7 @@ class Context:
     def __init__(self):
         # For all operations:
         self.verbose = False
+        self.clean = False
         self.nodes_array = []
         self.nodes = dict()
         self.nodes_by_address = dict()
@@ -27,7 +28,6 @@ class Context:
         self.nodes_count_processed = 0
         self.nodes_count_max = sys.maxsize
         self.threads = None
-        self.clean = False
 
     def run_uuid_2_address(self, node_path, client_path):
         print("Starting uuid_2_address...")

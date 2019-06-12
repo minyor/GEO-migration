@@ -1,5 +1,7 @@
+import os
 import threading
 import time
+import json
 
 from node.executor import NodeExecutor
 
@@ -43,6 +45,11 @@ class NodeValidator(NodeExecutor):
         time.sleep(0.2)
 
     def validate(self):
+        validated_file_path = os.path.join(self.new_node_path, "validated.json")
+        if os.path.isfile(validated_file_path):
+            self.checked = True
+            return
+
         print()
         self.init()
 
@@ -96,6 +103,10 @@ class NodeValidator(NodeExecutor):
 
         if checked:
             self.checked = True
+            with open(validated_file_path, 'w') as cpm_file_out:
+                json.dump({}, cpm_file_out, sort_keys=True, indent=4, ensure_ascii=False)
+            self.ctx.save_comparision_files()
+            self.ctx.nodes_count_processed += 1
 
     @staticmethod
     def change_trust_line(trust_line, node, new_outgoing_trust_amount):
