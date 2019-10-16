@@ -4,6 +4,7 @@ import os
 import shutil
 import sys
 import time
+import csv
 
 from node import context
 from node.migrator import NodeMigrator
@@ -43,6 +44,14 @@ class Main(context.Context):
 
     def migrate(self):
         shutil.rmtree(self.new_infrastructure_path, ignore_errors=True)
+
+        # Reading GNS addresses from file
+        self.gns_addresses = dict()
+        with open('users_addresses.csv') as csv_file:
+            csv_reader = csv.reader(csv_file, delimiter=';')
+            line_count = 0
+            for row in csv_reader:
+                self.gns_addresses[row[0]] = row[1]
 
         print()
         new_node_address = self.address

@@ -13,11 +13,13 @@ class Context:
         self.nodes_array = []
         self.nodes = dict()
         self.nodes_by_address = dict()
+        self.gns_addresses = None
 
         # Checking operation specific:
         self.checking_tr_0_json = None
         self.checking_tr_gw_bal_json = None
         self.checking_tr_gw_non_bal_json = None
+        self.checking_no_gns_address_json = None
 
         # Migration operation specific:
         self.address = None

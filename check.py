@@ -2,6 +2,7 @@ import getopt
 import os
 import sys
 import time
+import csv
 
 from node.checker import NodeChecker
 
@@ -30,11 +31,22 @@ class Main(context.Context):
         self.old_infrastructure_path = migration_conf.get("old_infrastructure_path")
         self.new_infrastructure_path = migration_conf.get("new_infrastructure_path")
 
+        os.makedirs(self.new_infrastructure_path, exist_ok=True)
+
     def check(self):
+        # Reading GNS addresses from file
+        self.gns_addresses = dict()
+        with open('users_addresses.csv') as csv_file:
+            csv_reader = csv.reader(csv_file, delimiter=';')
+            line_count = 0
+            for row in csv_reader:
+                self.gns_addresses[row[0]] = row[1]
+
         # Construct checking result file's paths
         checking_tr_0_path = os.path.join(self.new_infrastructure_path, "checking_tr_0.json")
         checking_tr_gw_bal_path = os.path.join(self.new_infrastructure_path, "checking_tr_gw_bal.json")
         checking_tr_gw_non_bal_path = os.path.join(self.new_infrastructure_path, "checking_tr_gw_non_bal.json")
+        checking_no_gns_address_path = os.path.join(self.new_infrastructure_path, "checking_no_gns_address.json")
 
         # Remove previous checking result files
         if os.path.exists(checking_tr_0_path):
@@ -43,6 +55,8 @@ class Main(context.Context):
             os.remove(checking_tr_gw_bal_path)
         if os.path.exists(checking_tr_gw_non_bal_path):
             os.remove(checking_tr_gw_non_bal_path)
+        if os.path.exists(checking_no_gns_address_path):
+            os.remove(checking_no_gns_address_path)
 
         new_node_address = self.address
         nodes = os.listdir(self.old_infrastructure_path)
@@ -73,6 +87,8 @@ class Main(context.Context):
             self.save_json(self.checking_tr_gw_bal_json, checking_tr_gw_bal_path)
         if self.checking_tr_gw_non_bal_json is not None:
             self.save_json(self.checking_tr_gw_non_bal_json, checking_tr_gw_non_bal_path)
+        if self.checking_no_gns_address_json is not None:
+            self.save_json(self.checking_no_gns_address_json, checking_no_gns_address_path)
 
     @staticmethod
     def usage():

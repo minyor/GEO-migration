@@ -13,6 +13,8 @@ class NodeGenerator:
         self.old_node_path = old_node_path
         self.new_node_path = new_node_path
         self.new_node_address = new_node_address
+        self.new_node_address_type = "ipv4"
+        self.new_node_address_port = "0"
         self.old_node_address = None
         self.old_trust_lines = []
         self.old_history = []
@@ -48,9 +50,20 @@ class NodeGenerator:
                 node = data["node"]
                 self.node_name = node.get("uuid", self.node_name)
                 network = data["network"]
-                self.old_node_address = network.get("interface", "127.0.0.1") + ":" + str(network.get("port", 2033))
+                self.old_node_address_port = str(network.get("port", 2033))
+                self.old_node_address = network.get("interface", "127.0.0.1") + ":" + self.old_node_address_port
                 if self.new_node_address is None:
                     self.new_node_address = self.old_node_address
+                    if self.ctx.gns_addresses is not None:
+                        gns_node_address = self.ctx.gns_addresses.get(self.node_name, None)
+                        if gns_node_address is not None:
+                            self.new_node_address_type = "gns"
+                            self.new_node_address = gns_node_address
+                        else:
+                            self.ctx.checking_no_gns_address_json = self.ctx.append_node_uuid(
+                                self.ctx.checking_no_gns_address_json, self.node_name)
+                            print("Error: Node #" + str(len(self.ctx.nodes) + 1) + ": " + self.node_name +
+                                  " has no gns address")
         except:
             self.ctx.append_migration_error({
                 "error": "Cannot parse 'conf.json' file",
@@ -58,11 +71,14 @@ class NodeGenerator:
             })
 
     def generate_conf_json(self):
+        port = ""
+        if self.new_node_address_type == "gns":
+            port = ":" + self.old_node_address_port
         data = dict()
         data['addresses'] = []
         data['addresses'].append({
-            'type': 'ipv4',
-            'address': self.new_node_address
+            'type': self.new_node_address_type,
+            'address': self.new_node_address + port
         })
         data['observers'] = []
         for observer in self.ctx.observers:
@@ -317,6 +333,10 @@ class NodeGenerator:
         for c in ip_and_port[0]:
             address.append(int(c))
         return address + struct.pack("H", int(ip_and_port[1]))
+
+    @staticmethod
+    def serialize_gns(address):
+        return bytearray(b'\x29') + struct.pack("H", int(len(address))) + address.encode()
 
     @staticmethod
     def bytes_to_str(arr):

@@ -1,6 +1,7 @@
 import sqlite3
 import subprocess
 import tempfile
+import struct
 
 from node.generator import NodeGenerator
 
@@ -34,11 +35,19 @@ class NodeMigrator(NodeGenerator):
         channel.id = self.channel_idx
         channel.id_on_contractor_side = id_on_contractor_side
 
-        self.new_storage_cur.execute(
-            "insert into contractors_addresses ('type', 'contractor_id', 'address_size', 'address') "
-            "values ('12', ?, '7', ?);",
-            (self.channel_idx, sqlite3.Binary(self.serialize_ipv4_with_port(contractor_address)))
-        )
+        if contractor_address.find("#") < 0:
+            self.new_storage_cur.execute(
+                "insert into contractors_addresses ('type', 'contractor_id', 'address_size', 'address') "
+                "values ('12', ?, '7', ?);",
+                (self.channel_idx, sqlite3.Binary(self.serialize_ipv4_with_port(contractor_address)))
+            )
+        else:
+            packed_address = self.serialize_gns(contractor_address)
+            self.new_storage_cur.execute(
+                "insert into contractors_addresses ('type', 'contractor_id', 'address_size', 'address') "
+                "values ('41', ?, ?, ?);",
+                (self.channel_idx, len(packed_address), sqlite3.Binary(packed_address))
+            )
 
         self.channel_idx += 1
         if not self.ctx.in_memory:
@@ -177,7 +186,6 @@ class NodeMigrator(NodeGenerator):
 
         operation_type_size = 1
         node_uuid_size = 16
-        address_type = 12
 
         records_added = 0
         records_skipped = 0
@@ -194,7 +202,10 @@ class NodeMigrator(NodeGenerator):
                 records_skipped += 1
                 continue
 
-            addresses_bytes = bytearray(b'\x01') + self.serialize_ipv4_with_port(node.new_node_address)
+            if node.new_node_address.find("#") < 0:
+                addresses_bytes = bytearray(b'\x01') + self.serialize_ipv4_with_port(node.new_node_address)
+            else:
+                addresses_bytes = bytearray(b'\x01') + self.serialize_gns(node.new_node_address)
             #print(
             #    "\tHistory for " + uuid +
             #    " record_type=" + str(history.record_type) +
@@ -208,7 +219,9 @@ class NodeMigrator(NodeGenerator):
                 history.record_body[address_pos_end:]
 
             if history.record_type == payment_record_type:
-                history.record_body += bytearray(b'\x00')
+                history.record_body += bytearray(b'\x00\x00\x00\x00\x00')
+            elif history.record_type == payment_additional_record_type:
+                history.record_body += bytearray(b'\x00\x00\x00\x00')
 
             records_added += 1
             self.new_storage_cur.execute(

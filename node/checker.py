@@ -2,6 +2,7 @@ import os
 import sqlite3
 
 from node.generator import NodeGenerator
+from node.context import CommunicatorMessage
 
 
 class NodeChecker(NodeGenerator):
@@ -129,7 +130,7 @@ class NodeChecker(NodeGenerator):
                 "FROM communicator_messages_queue;")
             rows = self.old_com_storage_cur.fetchall()
             for row in rows:
-                message = self.ctx.CommunicatorMessage()
+                message = CommunicatorMessage()
                 self.communicator_messages.append(message)
                 message.contractor_uuid = self.read_uuid(row[0])
                 message.transaction_uuid = self.read_uuid(row[1])
