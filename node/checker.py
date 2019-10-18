@@ -1,4 +1,5 @@
 import os
+import shutil
 import sqlite3
 
 from node.generator import NodeGenerator
@@ -53,12 +54,20 @@ class NodeChecker(NodeGenerator):
                 self.print_error(trust_line1, "Node not found: "+trust_line1.contractor_id)
                 self.checked = False
                 continue
+
             ota1 = NodeChecker.read_amount(trust_line1.outgoing_amount)
             ita1 = NodeChecker.read_amount(trust_line1.incoming_amount)
             bal1 = NodeChecker.read_amount(trust_line1.balance)
 
-            if NodeChecker.check_if_bal_is_null(bal1):
+            bal_is_null = NodeChecker.check_if_bal_is_null(bal1)
+            if bal_is_null:
                 non_null_bal = False
+
+            self.ctx.get_tl_stat(trust_line1.equivalent).count_all += 1
+            if bal_is_null:
+                self.ctx.get_tl_stat(trust_line1.equivalent).count_0_bal += 1
+            else:
+                self.ctx.get_tl_stat(trust_line1.equivalent).count_non_0_bal += 1
 
             for trust_line2 in node.old_trust_lines:
                 if trust_line2.equivalent != trust_line1.equivalent or \
@@ -82,7 +91,9 @@ class NodeChecker(NodeGenerator):
                     self.print_error(trust_line1, "Trust line balance does not match")
                     self.checked = False
 
+        no_trust_lines = False
         if len(self.old_trust_lines) < 1:
+            no_trust_lines = True
             self.ctx.checking_tr_0_json = self.ctx.append_node_uuid(
                 self.ctx.checking_tr_0_json, self.node_name)
         elif gateway_only:
@@ -93,11 +104,26 @@ class NodeChecker(NodeGenerator):
                 self.ctx.checking_tr_gw_non_bal_json = self.ctx.append_node_uuid(
                     self.ctx.checking_tr_gw_non_bal_json, self.node_name)
 
+        if self.no_gns_address:
+            if no_trust_lines:
+                self.print_info(None, "Node has no trust lines nor it has gsn address. Deleting.. ")
+                shutil.rmtree(self.old_node_path, ignore_errors=True)
+            else:
+                self.ctx.checking_no_gns_address_json = self.ctx.append_node_uuid(
+                    self.ctx.checking_no_gns_address_json, self.node_name)
+
     def print_error(self, trust_line, msg):
         trust_line_str = ""
         if trust_line is not None:
             trust_line_str = " trust_line="+trust_line.contractor_id+" eq="+str(trust_line.equivalent)
         print("ERROR: node="+self.node_name+trust_line_str)
+        print("\t"+msg)
+
+    def print_info(self, trust_line, msg):
+        trust_line_str = ""
+        if trust_line is not None:
+            trust_line_str = " trust_line="+trust_line.contractor_id+" eq="+str(trust_line.equivalent)
+        print("INFO:  node="+self.node_name+trust_line_str)
         print("\t"+msg)
 
     def retrieve_old_data(self):

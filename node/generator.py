@@ -18,6 +18,7 @@ class NodeGenerator:
         self.old_node_address = None
         self.old_trust_lines = []
         self.old_history = []
+        self.no_gns_address = False
 
         self.node_name = node_name
         self.read_conf_json()
@@ -60,8 +61,7 @@ class NodeGenerator:
                             self.new_node_address_type = "gns"
                             self.new_node_address = gns_node_address
                         else:
-                            self.ctx.checking_no_gns_address_json = self.ctx.append_node_uuid(
-                                self.ctx.checking_no_gns_address_json, self.node_name)
+                            self.no_gns_address = True
                             print("Error: Node #" + str(len(self.ctx.nodes) + 1) + ": " + self.node_name +
                                   " has no gns address")
         except:

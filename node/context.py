@@ -20,6 +20,7 @@ class Context:
         self.checking_tr_gw_bal_json = None
         self.checking_tr_gw_non_bal_json = None
         self.checking_no_gns_address_json = None
+        self.checking_stats_tl = dict()
 
         # Migration operation specific:
         self.address = None
@@ -36,6 +37,14 @@ class Context:
         self.nodes_count_processed = 0
         self.nodes_count_max = sys.maxsize
         self.threads = None
+
+    def get_tl_stat(self, eq):
+        stat = self.checking_stats_tl.get(eq, None)
+        if stat is None:
+            stat = TrustLineStat()
+            stat.eq = eq
+            self.checking_stats_tl[eq] = stat
+        return stat
 
     def run_uuid_2_address(self, node_path, client_path):
         print("Starting uuid_2_address...")
@@ -112,6 +121,14 @@ class TrustLine:
         self.our_signature = None
         self.own_keys_set_hash = None
         self.contractor_keys_set_hash = None
+
+
+class TrustLineStat:
+    def __init__(self):
+        self.eq = 0
+        self.count_all = 0
+        self.count_0_bal = 0
+        self.count_non_0_bal = 0
 
 
 class OwnKey:

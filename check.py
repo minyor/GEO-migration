@@ -90,6 +90,23 @@ class Main(context.Context):
         if self.checking_no_gns_address_json is not None:
             self.save_json(self.checking_no_gns_address_json, checking_no_gns_address_path)
 
+        print("Trust line stats:")
+        print(
+            '{0: <8}|'.format("EQ") +
+            '{0: <10}|'.format("Count all") +
+            '{0: <12}|'.format("Count 0 bal") +
+            '{0: <16}|'.format("Count non 0 bal")
+        )
+        print("--------------------------------------------------")
+        for tl_stat in self.checking_stats_tl.values():
+            print(
+                '{0: <8}|'.format(str(tl_stat.eq)) +
+                '{0: <10}|'.format(str(tl_stat.count_all)) +
+                '{0: <12}|'.format(str(tl_stat.count_0_bal)) +
+                '{0: <16}|'.format(str(tl_stat.count_non_0_bal))
+            )
+
+
     @staticmethod
     def usage():
         print("Usage:")
