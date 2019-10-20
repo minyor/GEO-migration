@@ -38,8 +38,6 @@ class Main(context.Context):
                 assert False, "unhandled option"
         self.observers = self.observers.split(',')
 
-        self.old_infrastructure_path = migration_conf.get("old_infrastructure_path")
-        self.new_infrastructure_path = migration_conf.get("new_infrastructure_path")
         self.mod_network_client_path = migration_conf.get("mod_network_client_path")
 
     def migrate(self):

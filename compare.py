@@ -38,8 +38,6 @@ class Main(context.Context):
             else:
                 assert False, "unhandled option"
         self.in_memory = True
-        self.old_infrastructure_path = migration_conf.get("old_infrastructure_path")
-        self.new_infrastructure_path = migration_conf.get("new_infrastructure_path")
         self.old_network_client_path = migration_conf.get("old_network_client_path")
         self.new_network_client_path = migration_conf.get("new_network_client_path")
         self.old_uuid_2_address_path = migration_conf.get("old_uuid_2_address_path")

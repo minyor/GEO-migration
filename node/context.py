@@ -4,6 +4,8 @@ import tempfile
 import pickle
 import json
 
+from settings import migration_conf
+
 
 class Context:
     def __init__(self):
@@ -37,6 +39,10 @@ class Context:
         self.nodes_count_processed = 0
         self.nodes_count_max = sys.maxsize
         self.threads = None
+
+        self.old_infrastructure_path = migration_conf.get("old_infrastructure_path")
+        self.new_infrastructure_path = migration_conf.get("new_infrastructure_path")
+        self.gns_address_separator = migration_conf.get("gns_address_separator")
 
     def get_tl_stat(self, eq):
         stat = self.checking_stats_tl.get(eq, None)

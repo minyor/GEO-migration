@@ -28,9 +28,6 @@ class Main(context.Context):
             else:
                 assert False, "unhandled option"
 
-        self.old_infrastructure_path = migration_conf.get("old_infrastructure_path")
-        self.new_infrastructure_path = migration_conf.get("new_infrastructure_path")
-
         os.makedirs(self.new_infrastructure_path, exist_ok=True)
 
     def check(self):

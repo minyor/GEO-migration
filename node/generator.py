@@ -74,9 +74,29 @@ class NodeGenerator:
 
     def generate_conf_json(self):
         port = ""
+        participant = "0"
         if self.new_node_address_type == "gns":
             port = ":" + self.old_node_address_port
+            participant = self.new_node_address[5:]
+            participant = participant[:participant.find(self.ctx.gns_address_separator)]
+
         data = dict()
+        data['providers'] = []
+        data['providers'].append({
+            'name': 'geo.pay',
+            'key': '111111',
+            'participant_id': int(participant),
+            'addresses': [
+                {
+                    "type": "ipv4",
+                    "address": "127.0.0.1:2010"
+                },
+                {
+                    "type": "ipv4",
+                    "address": "127.0.0.1:2011"
+                }
+            ]
+        })
         data['addresses'] = []
         data['addresses'].append({
             'type': self.new_node_address_type,
