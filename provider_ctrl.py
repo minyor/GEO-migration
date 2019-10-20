@@ -21,7 +21,7 @@ class Main(context.Context):
         self.lookup = None
         self.register_address = None
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "hvn:k:p:l:r",
+            opts, args = getopt.getopt(sys.argv[1:], "hvn:k:p:l:r:",
                     ["help", "verbose", "name=", "key=", "ping=", "lookup=", "register="])
         except getopt.GetoptError as err:
             print(str(err))
