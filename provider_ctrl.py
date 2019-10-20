@@ -131,7 +131,7 @@ class Main(context.Context):
         print("\t[-k --key] : Specify provider key for all nodes")
         print("\t[-p --ping] : Specify provider ping ip for all nodes")
         print("\t[-l --lookup] : Specify provider lookup ip for all nodes")
-        print("\t[-r --register] : Try to register each node in corresponding provider")
+        print("\t[-r --register] : Try to register each node in specified provider")
         print("Example:")
         print("\tpython provider_ctrl.py --name geo.pay --key 1237 --ping 127.0.0.1:2010 --lookup 127.0.0.1:2011")
         print("\tpython provider_ctrl.py --register 127.0.0.1:2012")
