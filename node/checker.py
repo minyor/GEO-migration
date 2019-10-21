@@ -69,10 +69,12 @@ class NodeChecker(NodeGenerator):
             else:
                 self.ctx.get_tl_stat(trust_line1.equivalent).count_non_0_bal += 1
 
+            tl_found = False
             for trust_line2 in node.old_trust_lines:
                 if trust_line2.equivalent != trust_line1.equivalent or \
                                 trust_line2.contractor_id != self.node_name:
                     continue
+                tl_found = True
                 if trust_line2.is_contractor_gateway == 0:
                     gateway_only = False
                 #print("\tChecking trust line: "+trust_line1.contractor_id+" eq=" +
@@ -90,6 +92,9 @@ class NodeChecker(NodeGenerator):
                         (bal1[0] == bal2[0] or bal1[1] != bal2[1]):
                     self.print_error(trust_line1, "Trust line balance does not match")
                     self.checked = False
+
+            if not tl_found:
+                self.print_error(trust_line1, "Node2 has no corresponding tl to Node1 ")
 
         no_trust_lines = False
         if len(self.old_trust_lines) < 1:
