@@ -60,8 +60,8 @@ class NodeGenerator:
                         if gns_node_address is not None:
                             self.new_node_address_type = "gns"
                             self.new_node_address = gns_node_address
-                            self.new_node_path = os.path.abspath(
-                                os.path.join(self.new_node_path, "..", self.new_node_address))
+                            #self.new_node_path = os.path.abspath(
+                            #    os.path.join(self.new_node_path, "..", self.new_node_address))
                         else:
                             self.no_gns_address = True
                             print("Error: Node #" + str(len(self.ctx.nodes) + 1) + ": " + self.node_name +

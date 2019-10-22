@@ -202,6 +202,11 @@ class NodeMigrator(NodeGenerator):
                 records_skipped += 1
                 continue
 
+            contractor_id_bytes = bytearray()
+            if history.record_type == trust_line_record_type:
+                print("node.channel_idx="+str(node.channel_idx))
+                contractor_id_bytes = struct.pack("I", node.channel_idx)
+
             if node.new_node_address.find("#") < 0:
                 addresses_bytes = bytearray(b'\x01') + self.serialize_ipv4_with_port(node.new_node_address)
             else:
@@ -215,13 +220,18 @@ class NodeMigrator(NodeGenerator):
 
             history.record_body = \
                 history.record_body[0:address_pos_begin] + \
+                contractor_id_bytes + \
                 addresses_bytes + \
                 history.record_body[address_pos_end:]
 
+            #if history.record_type == payment_record_type:
+            #    history.record_body += bytearray(b'\x00')
             if history.record_type == payment_record_type:
                 history.record_body += bytearray(b'\x00\x00\x00\x00\x00')
             elif history.record_type == payment_additional_record_type:
                 history.record_body += bytearray(b'\x00\x00\x00\x00')
+            #elif history.record_type == trust_line_record_type:
+            #    history.record_body += bytearray(b'\x00\x00\x00\x00')
 
             records_added += 1
             self.new_storage_cur.execute(

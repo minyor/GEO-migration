@@ -38,6 +38,8 @@ class NodeExecutor(NodeGenerator):
             data = json.load(conf_file)
             addresses = data["addresses"]
             self.new_node_address = addresses[0].get("address", self.new_node_address)
+            if addresses[0].get("type", "ipv4") == "gns":
+                self.new_node_address = self.new_node_address[:self.new_node_address.find(":")]
 
     def update_conf_json(self):
         try:

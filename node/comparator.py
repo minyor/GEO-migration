@@ -212,7 +212,8 @@ class NodeComparator(NodeExecutor):
                 self.retrieve_tl_from_new_node(commands_fifo_path, json_node, eq)
                 self.retrieve_h_tl_from_new_node(commands_fifo_path, json_node, eq)
                 self.retrieve_h_p_from_new_node(commands_fifo_path, json_node, eq)
-        except:
+        except Exception as e:
+            print(e)
             self.clear(node_handle)
             assert False, "Reassert "
 

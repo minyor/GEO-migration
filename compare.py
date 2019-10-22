@@ -47,8 +47,12 @@ class Main(context.Context):
         self.new_ign_file_path = os.path.join(self.new_infrastructure_path, files_prefix + "ignored.json")
 
     def batch(self, batch_thread_info):
+        thread_index = batch_thread_info[1]
+        running_thread_path = os.path.join(self.new_infrastructure_path, "thread_" + str(thread_index) + "_lock")
+        with open(running_thread_path, 'w') as cpm_file_out:
+            json.dump({}, cpm_file_out, sort_keys=True, indent=4, ensure_ascii=False)
+
         try:
-            thread_index = batch_thread_info[1]
             nodes = batch_thread_info[2]
             files_prefix = "thread_" + str(thread_index) + "_"
             main = Main("", files_prefix)
@@ -62,6 +66,7 @@ class Main(context.Context):
             print(e)
 
         batch_thread_info[3] = True
+        os.remove(running_thread_path)
 
     def start_batch(self):
         nodes = os.listdir(self.old_infrastructure_path)
@@ -105,9 +110,13 @@ class Main(context.Context):
             batch_thread_info[0] = batch_thread
             batch_threads_info.append(batch_thread_info)
 
+        time.sleep(1.0)
+        batch_thread_idx = 0
         for batch_thread_info in batch_threads_info:
-            while not batch_thread_info[3]:
+            running_thread_path = os.path.join(self.new_infrastructure_path, "thread_" + str(batch_thread_idx) + "_lock")
+            while os.path.isfile(running_thread_path):
                 time.sleep(1)
+            batch_thread_idx += 1
 
         print("Calculating migration outcome...")
         compared_nodes_sum = 0
