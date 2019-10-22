@@ -204,7 +204,6 @@ class NodeMigrator(NodeGenerator):
 
             contractor_id_bytes = bytearray()
             if history.record_type == trust_line_record_type:
-                print("node.channel_idx="+str(node.channel_idx))
                 contractor_id_bytes = struct.pack("I", node.channel_idx)
 
             if node.new_node_address.find("#") < 0:
