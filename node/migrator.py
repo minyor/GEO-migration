@@ -35,7 +35,7 @@ class NodeMigrator(NodeGenerator):
         channel.id = self.channel_idx
         channel.id_on_contractor_side = id_on_contractor_side
 
-        if contractor_address.find("#") < 0:
+        if contractor_address.find(self.ctx.gns_address_separator) < 0:
             self.new_storage_cur.execute(
                 "insert into contractors_addresses ('type', 'contractor_id', 'address_size', 'address') "
                 "values ('12', ?, '7', ?);",
@@ -206,7 +206,7 @@ class NodeMigrator(NodeGenerator):
             if history.record_type == trust_line_record_type:
                 contractor_id_bytes = struct.pack("I", node.channel_idx)
 
-            if node.new_node_address.find("#") < 0:
+            if node.new_node_address.find(self.ctx.gns_address_separator) < 0:
                 addresses_bytes = bytearray(b'\x01') + self.serialize_ipv4_with_port(node.new_node_address)
             else:
                 addresses_bytes = bytearray(b'\x01') + self.serialize_gns(node.new_node_address)

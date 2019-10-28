@@ -11,5 +11,5 @@ migration_conf = {
     # Comparision parameters
     "old_network_client_path": "/media/Root_2/Data/Dev/Migration/client_prod",
     "old_uuid_2_address_path": "/media/Root_2/Data/Dev/Migration/uuid2address-grn/uuid2address",
-    "new_network_client_path": "/media/Root_2/Data/Dev/GEO-network-client/bin/geo_network_client"
+    "new_network_client_path": "/media/Root_2/Data/Dev/Migration/geo_network_client"
 }

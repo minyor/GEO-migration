@@ -18,6 +18,7 @@ class NodeExecutor(NodeGenerator):
         self.new_result_fifo_path = os.path.join(self.new_node_path, "fifo", "results.fifo")
         self.old_commands_fifo_path = os.path.join(self.old_node_path, "fifo", "commands.fifo")
         self.new_commands_fifo_path = os.path.join(self.new_node_path, "fifo", "commands.fifo")
+        self.gns_user_id = 0
         self.db_disconnect(False)
 
         # Remove command fifo. A workaround to run some nodes
@@ -40,6 +41,8 @@ class NodeExecutor(NodeGenerator):
             self.new_node_address = addresses[0].get("address", self.new_node_address)
             if addresses[0].get("type", "ipv4") == "gns":
                 self.new_node_address = self.new_node_address[:self.new_node_address.find(":")]
+                participant = self.new_node_address[5:]
+                self.gns_user_id = int(participant[:participant.find(self.ctx.gns_address_separator)])
 
     def update_conf_json(self):
         try:

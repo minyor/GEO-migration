@@ -83,19 +83,27 @@ class NodeValidator(NodeExecutor):
                     continue
                 new_outgoing_trust_amount1 = trust_line1.outgoing_trust_amount + 1
                 new_outgoing_trust_amount2 = trust_line2.outgoing_trust_amount + 1
-                trust_line_changed1 = self.change_trust_line(trust_line1, self, new_outgoing_trust_amount1)
-                trust_line_changed2 = self.change_trust_line(trust_line2, node, new_outgoing_trust_amount2)
-
-                if trust_line_changed1.outgoing_trust_amount == new_outgoing_trust_amount1 and \
-                    trust_line_changed1.state == 2 and \
-                    trust_line_changed1.own_keys == 1 and trust_line_changed1.contractor_keys == 1 and \
-                    trust_line_changed2.outgoing_trust_amount == new_outgoing_trust_amount2 and \
-                    trust_line_changed2.state == 2 and \
-                    trust_line_changed2.own_keys == 1 and trust_line_changed2.contractor_keys == 1:
-                    print("SUCCESS: Both trust lines changed, no errors")
+                print("Comparing gns user id's: " + str(node.gns_user_id) + " : " + str(self.gns_user_id))
+                if node.gns_user_id > self.gns_user_id:
+                    print("Testing second node...")
+                    trust_line_changed2 = self.change_trust_line(trust_line2, node, new_outgoing_trust_amount2)
+                    if trust_line_changed2.outgoing_trust_amount == new_outgoing_trust_amount2 and \
+                        trust_line_changed2.state == 2 and \
+                        trust_line_changed2.own_keys == 1 and trust_line_changed2.contractor_keys == 1:
+                        print("SUCCESS: Trust lines changed, no errors")
+                    else:
+                        checked = False
+                        print("FAILURE: Changed trust lines does not match their targets")
                 else:
-                    checked = False
-                    print("FAILURE: Changed trust lines does not match their targets")
+                    print("Testing first node...")
+                    trust_line_changed1 = self.change_trust_line(trust_line1, self, new_outgoing_trust_amount1)
+                    if trust_line_changed1.outgoing_trust_amount == new_outgoing_trust_amount1 and \
+                        trust_line_changed1.state == 2 and \
+                        trust_line_changed1.own_keys == 1 and trust_line_changed1.contractor_keys == 1:
+                        print("SUCCESS: Trust lines changed, no errors")
+                    else:
+                        checked = False
+                        print("FAILURE: Changed trust lines does not match their targets")
 
             node.clear()
 
