@@ -51,6 +51,15 @@ class Main(context.Context):
             for row in csv_reader:
                 self.gns_addresses[row[0]] = row[1]
 
+        # Reading new equivalents from file
+        self.new_equivalents = dict()
+        with open('new_equivalents.csv') as csv_file:
+            csv_reader = csv.reader(csv_file, delimiter=';')
+            line_count = 0
+            for row in csv_reader:
+                self.new_equivalents[row[0]] = row[1]
+                self.new_equivalents[int(row[0])] = int(row[1])
+
         print()
         new_node_address = self.address
         nodes = os.listdir(self.old_infrastructure_path)

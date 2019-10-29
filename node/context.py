@@ -30,6 +30,7 @@ class Context:
         self.in_memory = False
         self.migration_error_json = None
         self.channels = None
+        self.new_equivalents = None
 
         # Comparision operation specific:
         self.old_comparision_json = {}
@@ -98,6 +99,14 @@ class Context:
             binary_file.close()
             return obl
         return None
+
+    def eq_map(self, eq):
+        if self.new_equivalents is not None:
+            new_eq = self.new_equivalents.get(eq, None)
+            if new_eq is not None:
+                #print("eq " + str(eq) + " is swapped to " + str(new_eq))
+                return new_eq
+        return eq
 
     @staticmethod
     def terminate():

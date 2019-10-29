@@ -149,7 +149,7 @@ class NodeGenerator:
             trust_line.outgoing_amount = row[2]
             trust_line.balance = row[3]
             trust_line.is_contractor_gateway = row[4]
-            trust_line.equivalent = row[5]
+            trust_line.equivalent = self.ctx.eq_map(row[5])
 
     def retrieve_old_history(self):
         self.old_storage_cur.execute(
@@ -165,7 +165,7 @@ class NodeGenerator:
             history.record_type = row[2]
             history.record_body = row[3]
             history.record_body_bytes_count = row[4]
-            history.equivalent = row[5]
+            history.equivalent = self.ctx.eq_map(row[5])
             history.command_uuid = row[6]
 
     def generate_tables(self):
