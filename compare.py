@@ -5,6 +5,7 @@ import os
 import sys
 import threading
 import time
+import csv
 
 from node.comparator import NodeComparator
 
@@ -60,6 +61,7 @@ class Main(context.Context):
             if len(nodes) > 0:
                 main.nodes = self.nodes
                 main.nodes_by_address = self.nodes_by_address
+                main.new_equivalents = self.new_equivalents
                 main.verbose = self.verbose
                 main.compare(nodes)
         except Exception as e:
@@ -133,6 +135,16 @@ class Main(context.Context):
             self.clean_comparision_data(nodes)
             return
 
+        # Reading new equivalents from file
+        self.new_equivalents = dict()
+        with open('new_equivalents.csv') as csv_file:
+            csv_reader = csv.reader(csv_file, delimiter=';')
+            line_count = 0
+            for row in csv_reader:
+                self.new_equivalents[row[0]] = row[1]
+                self.new_equivalents[int(row[0])] = int(row[1])
+
+        # Start multithreaded processing
         if self.threads is not None:
             self.start_batch()
             return

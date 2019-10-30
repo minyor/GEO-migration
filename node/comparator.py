@@ -75,6 +75,7 @@ class NodeComparator(NodeExecutor):
             decode("utf-8")
         result_tl = result_tl.split('\t')
         tl_count = int(result_tl[2])
+        eq = self.ctx.eq_map(eq)
         print("\tFound " + str(tl_count) + " trust lines")
         for t in range(tl_count):
             trust_line_array_shift = t * 4 + 3
@@ -103,6 +104,7 @@ class NodeComparator(NodeExecutor):
             decode("utf-8")
         result_tl = result_tl.split('\t')
         tl_count = int(result_tl[2])
+        eq = self.ctx.eq_map(eq)
         print("\tFound " + str(tl_count) + " history trust lines")
         for t in range(tl_count):
             trust_line_array_shift = t * 5 + 3
@@ -147,6 +149,7 @@ class NodeComparator(NodeExecutor):
         #print('Result: "{0}"'.format(result_tl))
         result_tl = result_tl.split('\t')
         tl_count = int(result_tl[2])
+        eq = self.ctx.eq_map(eq)
         print("\tFound " + str(tl_count) + " history payments")
         for t in range(tl_count):
             trust_line_array_shift = t * 6 + 3

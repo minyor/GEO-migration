@@ -16,6 +16,7 @@ class Context:
         self.nodes = dict()
         self.nodes_by_address = dict()
         self.gns_addresses = None
+        self.new_equivalents = None
 
         # Checking operation specific:
         self.checking_tr_0_json = None
@@ -30,7 +31,6 @@ class Context:
         self.in_memory = False
         self.migration_error_json = None
         self.channels = None
-        self.new_equivalents = None
 
         # Comparision operation specific:
         self.old_comparision_json = {}
