@@ -44,6 +44,15 @@ class NodeValidator(NodeExecutor):
         self.node_handle = self.run_node(self.new_node_path, self.new_client_path, verbose)
         time.sleep(0.2)
 
+        print("\tRequesting equivalents for node (FOR TESTING NODE)" + str(self.node_name) + "...")
+        result_eq = self.run_command(
+            self.new_commands_fifo_path,
+            '13e5cf8c-5834-4e52-b65b-f9281dd1ff91\tGET:equivalents\n').decode("utf-8")
+        result_eq = result_eq.split('\t')
+        eq_count = int(result_eq[2])
+        print("\tFound " + str(eq_count) + " equivalents")
+
+
     def validate(self):
         validated_file_path = os.path.join(self.new_node_path, "validated.json")
         if os.path.isfile(validated_file_path):

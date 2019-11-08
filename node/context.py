@@ -41,6 +41,11 @@ class Context:
         self.nodes_count_max = sys.maxsize
         self.threads = None
 
+        # Correlation operation specific:
+        self.redis = None
+        self.loop_period_in_sec = 10
+
+        self.debug = migration_conf.get("debug")
         self.old_infrastructure_path = migration_conf.get("old_infrastructure_path")
         self.new_infrastructure_path = migration_conf.get("new_infrastructure_path")
         self.gns_address_separator = migration_conf.get("gns_address_separator")
