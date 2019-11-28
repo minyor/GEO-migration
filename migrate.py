@@ -39,6 +39,7 @@ class Main(context.Context):
         self.observers = self.observers.split(',')
 
         self.mod_network_client_path = migration_conf.get("mod_network_client_path")
+        self.unknown_address = migration_conf.get("unknown_address")
 
     def migrate(self):
         shutil.rmtree(self.new_infrastructure_path, ignore_errors=True)

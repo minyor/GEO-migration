@@ -9,6 +9,7 @@ migration_conf = {
     "new_infrastructure_path": "/media/Root_2/Data/Dev/Migration/io_new",
     "mod_network_client_path": "/media/Root_2/Data/Dev/Migration/geo_network_client_mod",
     "gns_address_separator": "#",
+    "unknown_address": "user_unknown#geo.pay",
 
     # Comparision parameters
     "old_network_client_path": "/media/Root_2/Data/Dev/Migration/client_prod",

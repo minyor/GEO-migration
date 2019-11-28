@@ -196,25 +196,36 @@ class NodeMigrator(NodeGenerator):
             address_pos_end = (address_pos_begin + node_uuid_size)
             uuid = self.read_uuid(history.record_body[address_pos_begin:address_pos_end])
 
+            new_node_address = None
+            channel_idx = 0
             node = self.ctx.nodes.get(uuid)
-            if node is None:
-                #print("\tHistory for " + uuid + " skipping...")
-                records_skipped += 1
-                continue
+            if node is not None:
+                new_node_address = node.new_node_address
+                channel_idx = node.channel_idx
+                records_added += 1
+            else:
+                if self.ctx.gns_addresses is not None:
+                    new_node_address = self.ctx.gns_addresses.get(uuid, None)
+                if new_node_address is None:
+                    #print("\tHistory for " + uuid + " skipping...")
+                    records_skipped += 1
+                    new_node_address = self.ctx.unknown_address
+                else:
+                    records_added += 1
 
             contractor_id_bytes = bytearray()
             if history.record_type == trust_line_record_type:
-                contractor_id_bytes = struct.pack("I", node.channel_idx)
+                contractor_id_bytes = struct.pack("I", channel_idx)
 
-            if node.new_node_address.find(self.ctx.gns_address_separator) < 0:
-                addresses_bytes = bytearray(b'\x01') + self.serialize_ipv4_with_port(node.new_node_address)
+            if new_node_address.find(self.ctx.gns_address_separator) < 0:
+                addresses_bytes = bytearray(b'\x01') + self.serialize_ipv4_with_port(new_node_address)
             else:
-                addresses_bytes = bytearray(b'\x01') + self.serialize_gns(node.new_node_address)
+                addresses_bytes = bytearray(b'\x01') + self.serialize_gns(new_node_address)
             #print(
             #    "\tHistory for " + uuid +
             #    " record_type=" + str(history.record_type) +
             #    " operation_type=" + str(operation_type) +
-            #    " address=" + node.new_node_address
+            #    " address=" + new_node_address
             #)
 
             history.record_body = \
@@ -232,7 +243,6 @@ class NodeMigrator(NodeGenerator):
             #elif history.record_type == trust_line_record_type:
             #    history.record_body += bytearray(b'\x00\x00\x00\x00')
 
-            records_added += 1
             self.new_storage_cur.execute(
                 "insert into history ("
                 "'operation_uuid', 'operation_timestamp', 'record_type', 'record_body', "
@@ -252,7 +262,7 @@ class NodeMigrator(NodeGenerator):
         print(
             "Generating history for node: " + self.node_name +
             " added: " + str(records_added) +
-            " skipped: " + str(records_skipped)
+            " unknowned: " + str(records_skipped)
         )
 
     def migrate(self):
