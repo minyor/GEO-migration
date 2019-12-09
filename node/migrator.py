@@ -196,6 +196,7 @@ class NodeMigrator(NodeGenerator):
             address_pos_end = (address_pos_begin + node_uuid_size)
             uuid = self.read_uuid(history.record_body[address_pos_begin:address_pos_end])
 
+            unknown_address = False
             new_node_address = None
             channel_idx = 0
             node = self.ctx.nodes.get(uuid)
@@ -209,6 +210,7 @@ class NodeMigrator(NodeGenerator):
                 if new_node_address is None:
                     #print("\tHistory for " + uuid + " skipping...")
                     records_skipped += 1
+                    unknown_address = True
                     new_node_address = self.ctx.unknown_address
                 else:
                     records_added += 1
@@ -217,7 +219,7 @@ class NodeMigrator(NodeGenerator):
             if history.record_type == trust_line_record_type:
                 contractor_id_bytes = struct.pack("I", channel_idx)
 
-            if new_node_address.find(self.ctx.gns_address_separator) < 0:
+            if new_node_address.find(self.ctx.gns_address_separator) < 0 and not unknown_address:
                 addresses_bytes = bytearray(b'\x01') + self.serialize_ipv4_with_port(new_node_address)
             else:
                 addresses_bytes = bytearray(b'\x01') + self.serialize_gns(new_node_address)
