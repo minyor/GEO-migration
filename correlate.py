@@ -44,7 +44,7 @@ class Main(context.Context):
         self.old_handler_url = migration_conf.get("old_handler_url")
         self.new_handler_url = migration_conf.get("new_handler_url")
 
-    def load(self):
+    def load_nodes(self):
         # Reading GNS addresses from file
         self.gns_addresses = dict()
         with open('users_addresses.csv') as csv_file:
@@ -78,9 +78,6 @@ class Main(context.Context):
 
         print()
         for path in self.gns_addresses:
-            old_node_path = os.path.join(self.old_infrastructure_path, path)
-            if not os.path.isdir(old_node_path):
-                continue
             print("Loading node #"+str(len(self.nodes)+1)+": " + path)
             node_correlator = NodeCorrelator(
                 self, path, self.gns_addresses[path], self.old_uuid_2_address_path)
@@ -110,7 +107,7 @@ class Main(context.Context):
 if __name__ == "__main__":
     start_time = time.time()
     main = Main()
-    main.load()
+    main.load_nodes()
 
     hours, rem = divmod(time.time() - start_time, 3600)
     minutes, seconds = divmod(rem, 60)
