@@ -7,6 +7,7 @@ import threading
 import time
 import csv
 import redis
+import logging
 
 from node.correlator import NodeCorrelator
 
@@ -43,6 +44,8 @@ class Main(context.Context):
         self.old_uuid_2_address_path = migration_conf.get("old_uuid_2_address_path")
         self.old_handler_url = migration_conf.get("old_handler_url")
         self.new_handler_url = migration_conf.get("new_handler_url")
+
+        logging.basicConfig(filename='correlation.log', level=logging.DEBUG)
 
     def load_nodes(self):
         # Reading GNS addresses from file
@@ -86,13 +89,13 @@ class Main(context.Context):
             self.nodes_by_address[node_correlator.new_node_address] = node_correlator
 
     def correlate(self):
-        print("Beginning new correlation sequence...")
+        logging.info('Beginning new correlation sequence...')
         for node_correlator in self.nodes_array:
             try:
                 node_correlator.correlate()
             except Exception as e:
-                print(e)
-                print("Failed to correlate node #" + str(node_correlator.node_idx + 1) + ": " + node_correlator.node_name)
+                logging.error(e)
+                logging.error("Failed to correlate node #" + str(node_correlator.node_idx + 1) + ": " + node_correlator.node_name)
 
     @staticmethod
     def usage():
