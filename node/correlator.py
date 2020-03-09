@@ -5,6 +5,10 @@ import time
 import requests
 import urllib
 import redis
+import logging
+
+logging.getLogger("requests").setLevel(logging.WARNING)
+logging.getLogger("urllib3").setLevel(logging.WARNING)
 
 
 class NodeCorrelator:
@@ -15,7 +19,7 @@ class NodeCorrelator:
         self.new_node_address = new_node_address
 
     def correlate(self):
-        self.ctx.logger.info()
+        self.ctx.logger.info("")
         self.ctx.logger.info("Correlating node #"+str(self.node_idx+1)+": " + self.node_name + ": " + self.new_node_address)
 
         old_equivalents = self.get_equivalents(self.ctx.old_handler_url, self.node_name)
