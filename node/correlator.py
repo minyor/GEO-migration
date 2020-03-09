@@ -15,8 +15,8 @@ class NodeCorrelator:
         self.new_node_address = new_node_address
 
     def correlate(self):
-        print()
-        print("Correlating node #"+str(self.node_idx+1)+": " + self.node_name + ": " + self.new_node_address)
+        self.ctx.logger.info()
+        self.ctx.logger.info("Correlating node #"+str(self.node_idx+1)+": " + self.node_name + ": " + self.new_node_address)
 
         old_equivalents = self.get_equivalents(self.ctx.old_handler_url, self.node_name)
         new_equivalents = self.get_equivalents(self.ctx.new_handler_url, self.new_node_address)
@@ -28,8 +28,8 @@ class NodeCorrelator:
         list.sort(old_equivalents_converted)
         list.sort(new_equivalents)
 
-        print("\told_equivalents="+str(old_equivalents_converted))
-        print("\tnew_equivalents="+str(new_equivalents))
+        self.ctx.logger.info("\told_equivalents="+str(old_equivalents_converted))
+        self.ctx.logger.info("\tnew_equivalents="+str(new_equivalents))
 
         if str(old_equivalents_converted) != str(new_equivalents):
             raise ValueError(
@@ -91,18 +91,18 @@ class NodeCorrelator:
 
     def get_equivalents(self, url, address):
         node_name = address
-        print("\tRetrieving equivalents for node '" + node_name + "'...")
+        self.ctx.logger.info("\tRetrieving equivalents for node '" + node_name + "'...")
         address = urllib.parse.quote_plus(address)
         r = requests.get(
             "http://" + url + "/api/v1/nodes/" + address + "/equivalents/"
         )
         response = r.json()
         if self.ctx.debug:
-            print("\t\tResponse: " + str(response))
+            self.ctx.logger.info("\t\tResponse: " + str(response))
 
         redis_response = json.loads(self.get_from_redis(response["data"]["response_uuid"]).decode('utf8').replace("'", '"'))
         if self.ctx.debug:
-            print("\t\tRedis response: " + str(redis_response))
+            self.ctx.logger.info("\t\tRedis response: " + str(redis_response))
 
         if redis_response["status"] != 200:
             raise ValueError("Error: Node " + node_name + " handler returned '" + str(redis_response["status"]) + "': ")
@@ -112,7 +112,7 @@ class NodeCorrelator:
 
     def get_trust_lines(self, url, address, equivalent):
         node_name = address
-        print("\tRetrieving trust lines for node '" + node_name + "', equivalent '" + str(equivalent) + "'...")
+        self.ctx.logger.info("\tRetrieving trust lines for node '" + node_name + "', equivalent '" + str(equivalent) + "'...")
         address = urllib.parse.quote_plus(address)
         r = requests.get(
             "http://" + url + "/api/v1/nodes/" + address +
@@ -120,11 +120,11 @@ class NodeCorrelator:
         )
         response = r.json()
         if self.ctx.debug:
-            print("\t\tResponse: " + str(response))
+            self.ctx.logger.info("\t\tResponse: " + str(response))
 
         redis_response = json.loads(self.get_from_redis(response["data"]["response_uuid"]).decode('utf8').replace("'", '"'))
         if self.ctx.debug:
-            print("\t\tRedis response: " + str(redis_response))
+            self.ctx.logger.info("\t\tRedis response: " + str(redis_response))
 
         if redis_response["status"] != 200:
             raise ValueError("Error: Node " + node_name + " handler returned '" + str(redis_response["status"]) + "': ")

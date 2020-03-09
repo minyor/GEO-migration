@@ -23,7 +23,7 @@ class Main(context.Context):
                 custom_args = sys.argv[1:]
             opts, args = getopt.getopt(custom_args, "ht:p:v", ["help", "threads=", "period="])
         except getopt.GetoptError as err:
-            print(str(err))
+            self.logger.error(str(err))
             self.usage()
             sys.exit(2)
         for o, a in opts:
@@ -66,7 +66,7 @@ class Main(context.Context):
                 self.new_equivalents[int(row[0])] = int(row[1])
 
         old_uuid_2_address_dir = self.old_uuid_2_address_path[:self.old_uuid_2_address_path.rindex('/')]
-        print("old_uuid_2_address_dir="+old_uuid_2_address_dir)
+        self.logger.info("old_uuid_2_address_dir="+old_uuid_2_address_dir)
         old_uuid_2_address_thread = threading.Thread(
             target=self.run_uuid_2_address,
             args=(old_uuid_2_address_dir, self.old_uuid_2_address_path))
@@ -79,9 +79,9 @@ class Main(context.Context):
             password=migration_conf.get("redis_password"),
             db=migration_conf.get("redis_db"))
 
-        print()
+        self.logger.info("")
         for path in self.gns_addresses:
-            print("Loading node #"+str(len(self.nodes)+1)+": " + path)
+            self.logger.info("Loading node #"+str(len(self.nodes)+1)+": " + path)
             node_correlator = NodeCorrelator(
                 self, path, self.gns_addresses[path], self.old_uuid_2_address_path)
             self.nodes_array.append(node_correlator)
@@ -114,16 +114,16 @@ if __name__ == "__main__":
 
     hours, rem = divmod(time.time() - start_time, 3600)
     minutes, seconds = divmod(rem, 60)
-    print("Finished in {:0>2}:{:0>2}:{:05.2f}".format(int(hours), int(minutes), seconds))
+    main.logger.info("Finished in {:0>2}:{:0>2}:{:05.2f}".format(int(hours), int(minutes), seconds))
 
-    print()
-    print("Starting correlation loop...")
+    main.logger.info("")
+    main.logger.info("Starting correlation loop...")
     start_time = time.time() - main.loop_period_in_sec
     while True:
         while (time.time() - start_time) < main.loop_period_in_sec:
             time.sleep(0.1)
         start_time = time.time()
-        print("\n")
+        main.logger.info("\n")
         main.correlate()
 
     Main.terminate()

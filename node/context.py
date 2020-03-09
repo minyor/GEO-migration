@@ -1,5 +1,6 @@
 import os, sys
 import subprocess
+import logging
 import tempfile
 import pickle
 import json
@@ -49,6 +50,8 @@ class Context:
         self.old_infrastructure_path = migration_conf.get("old_infrastructure_path")
         self.new_infrastructure_path = migration_conf.get("new_infrastructure_path")
         self.gns_address_separator = migration_conf.get("gns_address_separator")
+
+        self.__init_logging()
 
     def get_tl_stat(self, eq):
         stat = self.checking_stats_tl.get(eq, None)
@@ -117,6 +120,27 @@ class Context:
     def terminate():
         with tempfile.TemporaryFile() as client_f:
             subprocess.Popen(['kill', '-9', str(os.getpid())], stdout=client_f, stderr=client_f)
+
+    def __init_logging(self) -> None:
+        stream_handler = logging.StreamHandler()
+        file_handler = logging.FileHandler('operations.log')
+        errors_handler = logging.FileHandler('errors.log')
+        errors_handler.setLevel(logging.ERROR)
+
+        formatter = logging.Formatter('%(asctime)s: %(message)s')
+        file_handler.setFormatter(formatter)
+        stream_handler.setFormatter(formatter)
+        errors_handler.setFormatter(formatter)
+
+        self.logger = logging.getLogger()
+        self.logger.addHandler(file_handler)
+        self.logger.addHandler(errors_handler)
+        self.logger.addHandler(stream_handler)
+
+        if self.debug:
+            self.logger.setLevel(logging.DEBUG)
+        else:
+            self.logger.setLevel(logging.INFO)
 
 
 class Channel:
