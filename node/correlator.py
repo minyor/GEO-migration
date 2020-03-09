@@ -17,10 +17,27 @@ class NodeCorrelator:
         self.node_idx = len(self.ctx.nodes)
         self.node_name = node_name
         self.new_node_address = new_node_address
+        self.log_lines = []
+
+    def info(self, str):
+        if self.ctx.only_not_correlated:
+            self.log_lines.append(str)
+        else:
+            self.ctx.logger.info(str)
+
+    def print_log_lines(self):
+        for line in self.log_lines:
+            self.ctx.logger.info(line)
+        self.log_lines = []
+
+    def raise_error(self, str):
+        if self.ctx.only_not_correlated:
+            self.print_log_lines()
+        raise ValueError(str)
 
     def correlate(self):
-        self.ctx.logger.info("")
-        self.ctx.logger.info("Correlating node #"+str(self.node_idx+1)+": " + self.node_name + ": " + self.new_node_address)
+        self.info("")
+        self.info("Correlating node #"+str(self.node_idx+1)+": " + self.node_name + ": " + self.new_node_address)
 
         old_equivalents = self.get_equivalents(self.ctx.old_handler_url, self.node_name)
         new_equivalents = self.get_equivalents(self.ctx.new_handler_url, self.new_node_address)
@@ -32,12 +49,11 @@ class NodeCorrelator:
         list.sort(old_equivalents_converted)
         list.sort(new_equivalents)
 
-        self.ctx.logger.info("\told_equivalents="+str(old_equivalents_converted))
-        self.ctx.logger.info("\tnew_equivalents="+str(new_equivalents))
+        self.info("\told_equivalents="+str(old_equivalents_converted))
+        self.info("\tnew_equivalents="+str(new_equivalents))
 
         if str(old_equivalents_converted) != str(new_equivalents):
-            raise ValueError(
-                "Error: Node " + self.node_name + " Old and New equivalents differs'")
+            self.raise_error("Error: Node " + self.node_name + " Old and New equivalents differs'")
 
         old_trust_lines = dict()
         for equivalent in old_equivalents:
@@ -53,8 +69,7 @@ class NodeCorrelator:
         old_tl_cmp_list, new_tl_cmp_list = self.form_trust_lines_cmp_lists(old_trust_lines, new_trust_lines)
 
         if str(old_tl_cmp_list) != str(new_tl_cmp_list):
-            raise ValueError(
-                "Error: Node " + self.node_name + " Old and New trust lines differs'")
+            self.raise_error("Error: Node " + self.node_name + " Old and New trust lines differs'")
 
     def form_trust_lines_cmp_lists(self, old_trust_lines, new_trust_lines):
         old_list = []
@@ -94,44 +109,50 @@ class NodeCorrelator:
         return old_list, new_list
 
     def get_equivalents(self, url, address):
-        node_name = address
-        self.ctx.logger.info("\tRetrieving equivalents for node '" + node_name + "'...")
-        address = urllib.parse.quote_plus(address)
-        r = requests.get(
-            "http://" + url + "/api/v1/nodes/" + address + "/equivalents/"
-        )
-        response = r.json()
-        if self.ctx.debug:
-            self.ctx.logger.info("\t\tResponse: " + str(response))
+        try:
+            node_name = address
+            self.info("\tRetrieving equivalents for node '" + node_name + "'...")
+            address = urllib.parse.quote_plus(address)
+            r = requests.get(
+                "http://" + url + "/api/v1/nodes/" + address + "/equivalents/"
+            )
+            response = r.json()
+            if self.ctx.debug:
+                self.info("\t\tResponse: " + str(response))
 
-        redis_response = json.loads(self.get_from_redis(response["data"]["response_uuid"]).decode('utf8').replace("'", '"'))
-        if self.ctx.debug:
-            self.ctx.logger.info("\t\tRedis response: " + str(redis_response))
+            redis_response = json.loads(self.get_from_redis(response["data"]["response_uuid"]).decode('utf8').replace("'", '"'))
+            if self.ctx.debug:
+                self.info("\t\tRedis response: " + str(redis_response))
+        except Exception as e:
+            self.raise_error(e)
 
         if redis_response["status"] != 200:
-            raise ValueError("Error: Node " + node_name + " handler returned '" + str(redis_response["status"]) + "': ")
+            self.raise_error("Error: Node " + node_name + " handler returned '" + str(redis_response["status"]) + "': ")
 
         ret = redis_response["data"]["equivalents"]
         return ret
 
     def get_trust_lines(self, url, address, equivalent):
-        node_name = address
-        self.ctx.logger.info("\tRetrieving trust lines for node '" + node_name + "', equivalent '" + str(equivalent) + "'...")
-        address = urllib.parse.quote_plus(address)
-        r = requests.get(
-            "http://" + url + "/api/v1/nodes/" + address +
-                "/contractors/trust-lines/" + str(equivalent) + "/"
-        )
-        response = r.json()
-        if self.ctx.debug:
-            self.ctx.logger.info("\t\tResponse: " + str(response))
+        try:
+            node_name = address
+            self.info("\tRetrieving trust lines for node '" + node_name + "', equivalent '" + str(equivalent) + "'...")
+            address = urllib.parse.quote_plus(address)
+            r = requests.get(
+                "http://" + url + "/api/v1/nodes/" + address +
+                    "/contractors/trust-lines/" + str(equivalent) + "/"
+            )
+            response = r.json()
+            if self.ctx.debug:
+                self.info("\t\tResponse: " + str(response))
 
-        redis_response = json.loads(self.get_from_redis(response["data"]["response_uuid"]).decode('utf8').replace("'", '"'))
-        if self.ctx.debug:
-            self.ctx.logger.info("\t\tRedis response: " + str(redis_response))
+            redis_response = json.loads(self.get_from_redis(response["data"]["response_uuid"]).decode('utf8').replace("'", '"'))
+            if self.ctx.debug:
+                self.info("\t\tRedis response: " + str(redis_response))
+        except Exception as e:
+            self.raise_error(e)
 
         if redis_response["status"] != 200:
-            raise ValueError("Error: Node " + node_name + " handler returned '" + str(redis_response["status"]) + "': ")
+            self.raise_error("Error: Node " + node_name + " handler returned '" + str(redis_response["status"]) + "': ")
 
         ret = redis_response["data"]["trust_lines"]
         return ret

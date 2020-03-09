@@ -44,6 +44,7 @@ class Main(context.Context):
         self.old_uuid_2_address_path = migration_conf.get("old_uuid_2_address_path")
         self.old_handler_url = migration_conf.get("old_handler_url")
         self.new_handler_url = migration_conf.get("new_handler_url")
+        self.only_not_correlated = migration_conf.get("only_not_correlated")
 
         logging.basicConfig(filename='correlation.log', level=logging.DEBUG)
 
