@@ -86,8 +86,12 @@ class NodeCorrelator:
             trust_lines = old_trust_lines[equivalent]
             tls = []
             for trust_line in trust_lines:
+                address = self.ctx.gns_addresses[trust_line["uuid"]]
+                if address is None:
+                    self.raise_error("Error: Node " + self.node_name +
+                                     " No gns address for uuid '"+trust_line["uuid"]+"' \ntrustline: "+str(trust_line))
                 tl = ""
-                tl += "address=" + self.ctx.gns_addresses[trust_line["uuid"]] + "; "
+                tl += "address=" + address + "; "
                 tl += "incoming_trust_amount=" + trust_line["incoming_trust_amount"] + "; "
                 tl += "outgoing_trust_amount=" + trust_line["outgoing_trust_amount"] + "; "
                 tl += "balance=" + trust_line["balance"] + "; "
