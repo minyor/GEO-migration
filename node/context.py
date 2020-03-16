@@ -4,6 +4,7 @@ import logging
 import tempfile
 import pickle
 import json
+from datetime import datetime
 
 from settings import migration_conf
 
@@ -122,20 +123,40 @@ class Context:
             subprocess.Popen(['kill', '-9', str(os.getpid())], stdout=client_f, stderr=client_f)
 
     def __init_logging(self) -> None:
-        stream_handler = logging.StreamHandler()
-        file_handler = logging.FileHandler('operations.log')
-        errors_handler = logging.FileHandler('errors.log')
-        errors_handler.setLevel(logging.ERROR)
-
-        formatter = logging.Formatter('%(asctime)s: %(message)s')
-        file_handler.setFormatter(formatter)
-        stream_handler.setFormatter(formatter)
-        errors_handler.setFormatter(formatter)
+        self.file_handler = None
+        self.errors_handler = None
+        self.logger = None
 
         self.logger = logging.getLogger()
-        self.logger.addHandler(file_handler)
-        self.logger.addHandler(errors_handler)
+        stream_handler = logging.StreamHandler()
+
+        formatter = logging.Formatter('%(asctime)s: %(message)s')
+        stream_handler.setFormatter(formatter)
+
         self.logger.addHandler(stream_handler)
+
+        self.reinit_logging()
+
+    def reinit_logging(self):
+        if self.file_handler is not None:
+            self.logger.removeHandler(self.file_handler)
+            self.logger.removeHandler(self.errors_handler)
+            self.file_handler.close()
+            self.errors_handler.close()
+            postfix = "_" + str(datetime.now())
+        else:
+            postfix = ""
+
+        self.file_handler = logging.FileHandler('operations'+postfix+'.log')
+        self.errors_handler = logging.FileHandler('errors'+postfix+'.log')
+        self.errors_handler.setLevel(logging.ERROR)
+
+        formatter = logging.Formatter('%(asctime)s: %(message)s')
+        self.file_handler.setFormatter(formatter)
+        self.errors_handler.setFormatter(formatter)
+
+        self.logger.addHandler(self.file_handler)
+        self.logger.addHandler(self.errors_handler)
 
         if self.debug:
             self.logger.setLevel(logging.DEBUG)

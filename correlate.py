@@ -90,6 +90,7 @@ class Main(context.Context):
             self.nodes_by_address[node_correlator.new_node_address] = node_correlator
 
     def correlate(self):
+        self.reinit_logging()
         logging.info('Beginning new correlation sequence...')
         for node_correlator in self.nodes_array:
             try:
