@@ -68,12 +68,19 @@ class NodeCorrelator:
 
         old_tl_cmp_list, new_tl_cmp_list = self.form_trust_lines_cmp_lists(old_trust_lines, new_trust_lines)
         if len(old_tl_cmp_list) != len(new_tl_cmp_list):
-            self.raise_error("Error: Node " + self.node_name + " Sizes of Old and New trust lines differs'")
+            self.raise_error("Error: Node " + self.node_name + " Sizes of Old and New equivalents differs: " +
+                             str(len(old_tl_cmp_list)) + "!=" + str(len(new_tl_cmp_list)))
 
         for i in range(len(old_tl_cmp_list)):
-            if str(old_tl_cmp_list[i]) != str(new_tl_cmp_list[i]):
-                self.raise_error("Error: Node " + self.node_name + " Old and New trust line differs: \n" +
-                                 str(old_tl_cmp_list[i]) + "\n" + str(new_tl_cmp_list[i]))
+            old_tr_list = old_tl_cmp_list[i]
+            new_tr_list = new_tl_cmp_list[i]
+            if len(old_tr_list) != len(new_tr_list):
+                self.raise_error("Error: Node " + self.node_name + " Sizes of Old and New trust lines differs: " +
+                                str(len(old_tr_list)) + "!=" + str(len(new_tr_list)))
+            for j in range(len(old_tr_list)):
+                if str(old_tr_list[j]) != str(new_tr_list[j]):
+                    self.raise_error("Error: Node " + self.node_name + " Old and New trust line differs: \n" +
+                                     str(old_tr_list[j]) + "\n" + str(new_tr_list[j]))
 
         #if str(old_tl_cmp_list) != str(new_tl_cmp_list):
         #    self.raise_error("Error: Node " + self.node_name + " Old and New trust lines differs'")
